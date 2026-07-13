@@ -1,0 +1,17 @@
+{
+  "name": "TradeLab — Day Trading Study & Practice",
+  "short_name": "TradeLab",
+  "description": "Offline day trading study platform: strategy playbooks, education hub, trade journal, risk tools, pre-market checklist and quizzes.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#10151c",
+  "theme_color": "#0d0d0d",
+  "categories": ["education", "finance", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

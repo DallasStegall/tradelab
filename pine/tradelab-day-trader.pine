@@ -1,0 +1,311 @@
+// =============================================================================
+// TradeLab Day Trader — ORB + Support/Resistance + Volume Confirmation
+// Pine Script v5 · overlay indicator for 1-min / 5-min / 15-min charts
+// =============================================================================
+// HOW TO INSTALL
+//   1. Open any chart on TradingView (works best on 1m / 5m / 15m intraday).
+//   2. Click "Pine Editor" at the bottom of the chart.
+//   3. Delete the starter code, paste this ENTIRE file, press "Save",
+//      name it (e.g. "TradeLab Day Trader"), then click "Add to chart".
+//   4. Alerts: right-click the chart → "Add alert" → in the Condition dropdown
+//      pick "TradeLab Day Trader" and choose one of the 6 alert conditions
+//      (OR formed, breakout up/down confirmed, low-volume warning, support
+//      bounce, volume spike). Create one alert per condition you want.
+//
+// DESIGN NOTES
+//   • A TradingView indicator lives in a single pane. Since this one overlays
+//     PRICE, volume cannot be drawn as a classic sub-pane histogram; instead a
+//     color-coded "volume strip" is plotted along the bottom of the price pane
+//     (teal = above average, gray = below, orange = spike), plus RVOL in the
+//     stats table and low-volume breakout warnings on the chart itself.
+//   • The opening range is session-based, so it adapts to any intraday
+//     timeframe. Default window is 9:30–9:45 America/New_York (first 15 min).
+//   • Risk/reward lines are drawn from the day's FIRST opening-range breakout
+//     in each direction (entry = range edge, stop = midpoint or opposite side,
+//     targets = 2R and 3R). Support-bounce entries are marked with triangles.
+// =============================================================================
+
+//@version=5
+indicator("TradeLab Day Trader — ORB + S/R + Volume", "TradeLab ORB",
+     overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 100)
+
+// -----------------------------------------------------------------------------
+// INPUTS
+// -----------------------------------------------------------------------------
+grpOR   = "Opening Range"
+showORB    = input.bool(true,                 "Show opening range + breakouts", group = grpOR)
+orSession  = input.session("0930-0945",       "Opening range window (exchange time)", group = grpOR,
+     tooltip = "Default = first 15 minutes from the 9:30 ET open. Use 0930-0935 for a 5-minute range or 0930-1000 for 30 minutes.")
+orTz       = input.string("America/New_York", "Session timezone", group = grpOR)
+orStopMode = input.string("Range midpoint",   "Breakout stop placement", options = ["Range midpoint", "Opposite side of range"], group = grpOR)
+
+grpSR   = "Support / Resistance"
+showSR     = input.bool(true, "Show swing support/resistance",     group = grpSR)
+pivotLen   = input.int(10,    "Swing strength (bars each side)",   minval = 2, maxval = 50, group = grpSR,
+     tooltip = "A swing high/low must be the extreme of this many bars on BOTH sides. Higher = fewer, stronger levels.")
+maxLevels  = input.int(5,     "Levels kept per side",              minval = 2, maxval = 10, group = grpSR)
+zoneMult   = input.float(0.25,"Pullback zone width (× ATR)",       minval = 0.05, maxval = 1.0, step = 0.05, group = grpSR)
+
+grpVol  = "Volume"
+showVol    = input.bool(true, "Show volume strip (bottom of pane)", group = grpVol)
+volMALen   = input.int(20,    "Volume average length",              minval = 5, group = grpVol)
+spikeMult  = input.float(2.0, "Volume spike = × average",           minval = 1.2, step = 0.1, group = grpVol)
+confirmMult= input.float(1.5, "Breakout confirmation = × average",  minval = 1.0, step = 0.1, group = grpVol)
+
+grpTrade = "Entry / Exit"
+showTrade  = input.bool(true, "Draw stop + 2R/3R lines on ORB breakout", group = grpTrade)
+rrExtend   = input.int(30,    "Extend trade lines (bars)",  minval = 10, maxval = 200, group = grpTrade)
+showBounce = input.bool(true, "Mark support-bounce entries", group = grpTrade)
+
+grpSize = "Position Sizing (stats table)"
+acctSize   = input.float(30000, "Account size ($)",   minval = 100,  group = grpSize)
+riskPct    = input.float(1.0,   "Risk per trade (%)", minval = 0.1,  maxval = 5, step = 0.05, group = grpSize)
+atrLen     = input.int(14,      "ATR length",         minval = 1,    group = grpSize)
+atrStopMult= input.float(1.5,   "ATR stop multiple",  minval = 0.25, step = 0.25, group = grpSize,
+     tooltip = "Suggested shares = floor(account × risk% ÷ (ATR × this multiple)). A structure stop (range/swing) is better when available — this is the generic fallback.")
+
+grpUI   = "Display & Colors"
+showTable  = input.bool(true, "Show stats table", group = grpUI)
+colBull    = input.color(color.new(#0ca30c, 0),  "Bullish",            group = grpUI)
+colBear    = input.color(color.new(#d03b3b, 0),  "Bearish",            group = grpUI)
+colOR      = input.color(color.new(#2a78d6, 0),  "Opening range",      group = grpUI)
+colWarn    = input.color(color.new(#eda100, 0),  "Warning / spike",    group = grpUI)
+colSup     = input.color(color.new(#199e70, 0),  "Support lines",      group = grpUI)
+colRes     = input.color(color.new(#d55181, 0),  "Resistance lines",   group = grpUI)
+
+// -----------------------------------------------------------------------------
+// SHARED SERIES
+// -----------------------------------------------------------------------------
+atr      = ta.atr(atrLen)
+volMA    = ta.sma(volume, volMALen)
+volRatio = volMA > 0 ? volume / volMA : na
+volSpike = not na(volRatio) and volRatio >= spikeMult
+emaTrend = ta.ema(close, 20)
+trendUp  = close > emaTrend and emaTrend > emaTrend[5]
+trendDn  = close < emaTrend and emaTrend < emaTrend[5]
+
+// -----------------------------------------------------------------------------
+// 1) OPENING RANGE
+// -----------------------------------------------------------------------------
+// True while the current bar is inside the opening-range window (Mon–Fri).
+inOR    = not na(time(timeframe.period, orSession + ":23456", orTz))
+newDay  = nz(ta.change(time("D")), 0) != 0
+
+var float orHigh    = na
+var float orLow     = na
+var bool  orFormed  = false
+var bool  brokeUp   = false
+var bool  brokeDown = false
+
+// Reset everything at the first bar of each new calendar day
+if newDay
+    orHigh    := na
+    orLow     := na
+    orFormed  := false
+    brokeUp   := false
+    brokeDown := false
+
+// Accumulate the range while inside the window
+if inOR
+    orHigh := na(orHigh) ? high : math.max(orHigh, high)
+    orLow  := na(orLow)  ? low  : math.min(orLow,  low)
+
+// The range is "formed" on the first bar AFTER the window closes
+orJustFormed = (not inOR) and inOR[1] and not na(orHigh)
+if orJustFormed
+    orFormed := true
+
+// Breakouts: a CLOSE beyond the range (first one per day per side)
+breakUpNow = showORB and orFormed and not brokeUp   and close > orHigh
+breakDnNow = showORB and orFormed and not brokeDown and close < orLow
+confirmedUp = breakUpNow and not na(volRatio) and volRatio >= confirmMult
+confirmedDn = breakDnNow and not na(volRatio) and volRatio >= confirmMult
+weakUp      = breakUpNow and (na(volRatio) or volRatio < confirmMult)
+weakDn      = breakDnNow and (na(volRatio) or volRatio < confirmMult)
+if breakUpNow
+    brokeUp := true
+if breakDnNow
+    brokeDown := true
+
+// Plots: range lines + soft fill (linebr breaks cleanly at day boundaries)
+pORH = plot(showORB and orFormed ? orHigh : na, "OR High", color = colOR, style = plot.style_linebr, linewidth = 2)
+pORL = plot(showORB and orFormed ? orLow  : na, "OR Low",  color = colOR, style = plot.style_linebr, linewidth = 2)
+fill(pORH, pORL, color = color.new(colOR, 92), title = "OR fill")
+
+// Breakout markers
+plotshape(confirmedUp, "ORB up (confirmed)",   shape.triangleup,   location.belowbar, color = colBull, size = size.small, text = "ORB")
+plotshape(confirmedDn, "ORB down (confirmed)", shape.triangledown, location.abovebar, color = colBear, size = size.small, text = "ORB")
+plotshape(weakUp,  "ORB up — low volume",   shape.xcross, location.belowbar, color = colWarn, size = size.tiny, text = "low vol")
+plotshape(weakDn,  "ORB down — low volume", shape.xcross, location.abovebar, color = colWarn, size = size.tiny, text = "low vol")
+
+// -----------------------------------------------------------------------------
+// 2) SUPPORT / RESISTANCE (swing pivots)
+// -----------------------------------------------------------------------------
+ph = ta.pivothigh(high, pivotLen, pivotLen)
+pl = ta.pivotlow(low,  pivotLen, pivotLen)
+
+var array<float> resLv = array.new<float>()
+var array<float> supLv = array.new<float>()
+var array<line>  resLn = array.new<line>()
+var array<line>  supLn = array.new<line>()
+
+f_addLevel(levels, lines, price, col) =>
+    array.push(levels, price)
+    array.push(lines, line.new(bar_index - pivotLen, price, bar_index, price,
+         extend = extend.right, color = color.new(col, 30), style = line.style_dotted, width = 1))
+    if array.size(levels) > maxLevels
+        array.shift(levels)
+        line.delete(array.shift(lines))
+
+if showSR and not na(ph)
+    f_addLevel(resLv, resLn, ph, colRes)
+if showSR and not na(pl)
+    f_addLevel(supLv, supLn, pl, colSup)
+
+// Nearest stored level strictly above / below a price (role beats origin:
+// any old level under price acts as support, any above acts as resistance).
+f_nearest(price, wantBelow) =>
+    float best = na
+    for lv in supLv
+        if (wantBelow ? lv < price : lv > price) and (na(best) or math.abs(lv - price) < math.abs(best - price))
+            best := lv
+    for lv in resLv
+        if (wantBelow ? lv < price : lv > price) and (na(best) or math.abs(lv - price) < math.abs(best - price))
+            best := lv
+    best
+
+nearSup = f_nearest(close, true)
+nearRes = f_nearest(close, false)
+
+// Pullback zone: uptrend + price hovering just above a known level
+inPullZone = showSR and trendUp and not na(nearSup) and (close - nearSup) <= zoneMult * atr and close > nearSup
+bgcolor(inPullZone ? color.new(colSup, 88) : na, title = "Pullback zone")
+
+// Support bounce: dipped into the level and closed back above it, bullishly
+bounceSig = showBounce and showSR and trendUp and not na(nearSup) and
+     low <= nearSup + 0.1 * atr and close > nearSup and close > open
+plotshape(bounceSig, "Support bounce", shape.triangleup, location.belowbar, color = colSup, size = size.tiny, text = "bounce")
+
+// -----------------------------------------------------------------------------
+// 3) VOLUME STRIP (bottom of the price pane)
+// -----------------------------------------------------------------------------
+plotshape(showVol and volSpike, "Vol spike", shape.square, location.bottom, color = colWarn, size = size.tiny)
+plotshape(showVol and not volSpike and not na(volRatio) and volRatio >= 1.0, "Vol > avg", shape.square, location.bottom, color = color.new(#199e70, 40), size = size.tiny)
+plotshape(showVol and not na(volRatio) and volRatio < 1.0, "Vol < avg", shape.square, location.bottom, color = color.new(color.gray, 60), size = size.tiny)
+
+// -----------------------------------------------------------------------------
+// 4) TRADE DRAWINGS — stop + 2R / 3R from the ORB breakout
+// -----------------------------------------------------------------------------
+var array<line>  tLn = array.new<line>()
+var array<box>   tBx = array.new<box>()
+var array<label> tLb = array.new<label>()
+
+f_clearTrade() =>
+    for l in tLn
+        line.delete(l)
+    for b in tBx
+        box.delete(b)
+    for lb in tLb
+        label.delete(lb)
+    array.clear(tLn)
+    array.clear(tBx)
+    array.clear(tLb)
+
+if newDay
+    f_clearTrade()
+
+f_line(y, col, styl, w) =>
+    array.push(tLn, line.new(bar_index, y, bar_index + rrExtend, y, color = col, style = styl, width = w))
+
+f_lbl(y, txt, col) =>
+    array.push(tLb, label.new(bar_index + rrExtend, y, txt, style = label.style_label_left,
+         color = color.new(color.black, 100), textcolor = col, size = size.small))
+
+f_drawTrade(entryP, stopP, dir) =>
+    risk = math.abs(entryP - stopP)
+    if risk > syminfo.mintick * 2
+        t2 = entryP + dir * 2 * risk
+        t3 = entryP + dir * 3 * risk
+        // zones: red = risk, green = reward (to 3R)
+        array.push(tBx, box.new(bar_index, math.max(entryP, stopP), bar_index + rrExtend, math.min(entryP, stopP),
+             border_color = na, bgcolor = color.new(colBear, 88)))
+        array.push(tBx, box.new(bar_index, math.max(entryP, t3), bar_index + rrExtend, math.min(entryP, t3),
+             border_color = na, bgcolor = color.new(colBull, 92)))
+        f_line(entryP, colOR,  line.style_solid,  2)
+        f_line(stopP,  colBear, line.style_dashed, 1)
+        f_line(t2,     colBull, line.style_dashed, 1)
+        f_line(t3,     colBull, line.style_dotted, 1)
+        f_lbl(entryP, "Entry "  + str.tostring(entryP, format.mintick), colOR)
+        f_lbl(stopP,  "Stop "   + str.tostring(stopP,  format.mintick) + "  (−1R)", colBear)
+        f_lbl(t2,     "1:2  "   + str.tostring(t2,     format.mintick), colBull)
+        f_lbl(t3,     "1:3  "   + str.tostring(t3,     format.mintick), colBull)
+
+orMid = (orHigh + orLow) / 2
+if showTrade and breakUpNow
+    f_drawTrade(orHigh, orStopMode == "Range midpoint" ? orMid : orLow, 1)
+if showTrade and breakDnNow
+    f_drawTrade(orLow, orStopMode == "Range midpoint" ? orMid : orHigh, -1)
+
+// -----------------------------------------------------------------------------
+// 5) STATS TABLE
+// -----------------------------------------------------------------------------
+var table tbl = table.new(position.top_right, 2, 8, bgcolor = color.new(color.black, 25), border_width = 1, border_color = color.new(color.gray, 70))
+
+f_status() =>
+    if not timeframe.isintraday
+        "Use a 1–15 min chart"
+    else if inOR
+        "OR forming…"
+    else if not orFormed
+        "Pre-open / no OR yet"
+    else if brokeUp and close > orHigh
+        "ABOVE range ▲"
+    else if brokeDown and close < orLow
+        "BELOW range ▼"
+    else
+        "Inside range"
+
+if showTable and barstate.islast
+    stopDist  = atr * atrStopMult
+    riskDols  = acctSize * riskPct / 100
+    shares    = stopDist > 0 ? math.floor(riskDols / stopDist) : na
+    statusCol = brokeUp and close > orHigh ? colBull : brokeDown and close < orLow ? colBear : color.white
+    rvolCol   = na(volRatio) ? color.gray : volRatio >= spikeMult ? colWarn : volRatio >= 1 ? colBull : color.gray
+
+    table.cell(tbl, 0, 0, "Status",        text_color = color.gray,  text_size = size.small)
+    table.cell(tbl, 1, 0, f_status(),      text_color = statusCol,   text_size = size.small)
+    table.cell(tbl, 0, 1, "Open range",    text_color = color.gray,  text_size = size.small)
+    table.cell(tbl, 1, 1, orFormed ? str.tostring(orLow, format.mintick) + " – " + str.tostring(orHigh, format.mintick) : "—",
+         text_color = colOR, text_size = size.small)
+    table.cell(tbl, 0, 2, "RVOL (bar)",    text_color = color.gray,  text_size = size.small)
+    table.cell(tbl, 1, 2, na(volRatio) ? "—" : str.tostring(volRatio, "#.##") + "×", text_color = rvolCol, text_size = size.small)
+    table.cell(tbl, 0, 3, "ATR(" + str.tostring(atrLen) + ")", text_color = color.gray, text_size = size.small)
+    table.cell(tbl, 1, 3, str.tostring(atr, format.mintick), text_color = color.white, text_size = size.small)
+    table.cell(tbl, 0, 4, "Shares (ATR stop)", text_color = color.gray, text_size = size.small)
+    table.cell(tbl, 1, 4, na(shares) ? "—" : str.tostring(shares, "#,###") + " @ $" + str.tostring(riskDols, "#,###") + " risk",
+         text_color = color.white, text_size = size.small)
+    table.cell(tbl, 0, 5, "Support ↓",     text_color = color.gray,  text_size = size.small)
+    table.cell(tbl, 1, 5, na(nearSup) ? "—" : str.tostring(nearSup, format.mintick) + "  (" + str.tostring(close - nearSup, format.mintick) + ")",
+         text_color = colSup, text_size = size.small)
+    table.cell(tbl, 0, 6, "Resistance ↑",  text_color = color.gray,  text_size = size.small)
+    table.cell(tbl, 1, 6, na(nearRes) ? "—" : str.tostring(nearRes, format.mintick) + "  (" + str.tostring(nearRes - close, format.mintick) + ")",
+         text_color = colRes, text_size = size.small)
+    table.cell(tbl, 0, 7, "Trend (20 EMA)", text_color = color.gray, text_size = size.small)
+    table.cell(tbl, 1, 7, trendUp ? "Up" : trendDn ? "Down" : "Flat/mixed",
+         text_color = trendUp ? colBull : trendDn ? colBear : color.gray, text_size = size.small)
+
+// -----------------------------------------------------------------------------
+// 6) ALERTS  (create from the TradingView alert dialog — one per condition)
+// -----------------------------------------------------------------------------
+alertcondition(orJustFormed,                 "1. Opening range formed",
+     "TradeLab: opening range formed — high {{high}} / low {{low}} on {{ticker}}")
+alertcondition(confirmedUp,                  "2. ORB breakout UP (volume confirmed)",
+     "TradeLab: {{ticker}} broke ABOVE the opening range on strong volume at {{close}}")
+alertcondition(confirmedDn,                  "3. ORB breakout DOWN (volume confirmed)",
+     "TradeLab: {{ticker}} broke BELOW the opening range on strong volume at {{close}}")
+alertcondition(weakUp or weakDn,             "4. ORB breakout WARNING — low volume",
+     "TradeLab: {{ticker}} broke the opening range WITHOUT volume confirmation — higher failure odds")
+alertcondition(bounceSig,                    "5. Support bounce entry",
+     "TradeLab: {{ticker}} bounced off swing support at {{close}} in an uptrend")
+alertcondition(volSpike and not volSpike[1], "6. Volume spike",
+     "TradeLab: volume spike on {{ticker}} — current bar is running well above average")
