@@ -81,6 +81,9 @@
     if (data['tools.inputs']) out.push('tool inputs');
     if (data['journal.filters']) out.push('journal filters');
     if (data.theme) out.push(data.theme + ' theme');
+    /* a backup can carry any shape here — only describe a real string */
+    var nm = data['profile.name'];
+    if (typeof nm === 'string' && nm.trim()) out.push('name (' + nm.trim().slice(0, 24) + ')');
     return out.length ? out.join(' · ') : 'no saved data';
   }
 
@@ -176,9 +179,9 @@
       }
     }
 
-    /* device preferences (theme, filters, tool inputs) — only fill gaps, never
-       overwrite this device's own choices on a merge */
-    ['theme', 'journal.filters', 'tools.inputs'].forEach(function (k) {
+    /* device preferences (name, theme, filters, tool inputs) — only fill gaps,
+       never overwrite this device's own choices on a merge */
+    ['profile.name', 'theme', 'journal.filters', 'tools.inputs'].forEach(function (k) {
       if (inc[k] != null && App.Store.get(k, null) == null) put(k, inc[k]);
     });
   }

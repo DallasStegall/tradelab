@@ -210,6 +210,30 @@ svg.icon { display: inline-block; vertical-align: -3px; flex: none; }
 /* ---------- Page scaffolding ---------- */
 .page-header { margin-bottom: 20px; }
 .page-header .lede { color: var(--ink-2); max-width: 62ch; margin-top: 2px; }
+
+/* Editable name in the dashboard greeting — inherits the h1's type so the
+   button is invisible until hovered/focused. */
+.name-edit {
+  font: inherit; color: inherit; letter-spacing: inherit;
+  background: none; border: 0; border-bottom: 1px dashed var(--border-strong);
+  padding: 0 2px; margin: 0 -2px; border-radius: 5px; cursor: pointer;
+  transition: color .15s, background .15s, border-color .15s;
+}
+.name-edit:hover {
+  color: var(--accent); border-bottom-color: var(--accent);
+  background: var(--accent-soft);
+}
+.name-edit.unset { color: var(--ink-3); }
+.name-edit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.name-input {
+  font: inherit; letter-spacing: inherit;
+  color: var(--ink); background: var(--surface-3);
+  border: 1px solid var(--accent); border-radius: 7px;
+  padding: 0 6px; margin: 0 -7px;
+  width: 11ch; max-width: 60vw; min-width: 0;
+}
+.name-input:focus { outline: 2px solid var(--accent-soft); outline-offset: 1px; }
+@media print { .name-edit { border-bottom: 0; } }
 .back-link {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: .86rem; font-weight: 550; color: var(--ink-3); margin-bottom: 10px;

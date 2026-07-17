@@ -84,6 +84,29 @@
     setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
   }
 
+  /* ------------------------------ Profile ------------------------------ */
+  var NAME_MAX = 24;
+  /* The name is echoed into the dashboard heading and can arrive from a
+     restored backup, so it is never trusted: control characters out,
+     whitespace collapsed, length capped. */
+  function cleanName(s) {
+    /* a restored backup can hold any JSON shape here; anything but a string
+       (object, array, number) is not a name — drop it rather than render
+       something like "[object Object]" as the greeting */
+    if (typeof s !== 'string') return '';
+    return s
+      .replace(/[\u0000-\u001f\u007f]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, NAME_MAX);
+  }
+  function profileName() { return cleanName(Store.get('profile.name', '')); }
+  function setProfileName(s) {
+    var v = cleanName(s);
+    if (v) Store.set('profile.name', v); else Store.remove('profile.name');
+    return v;
+  }
+
   /* ------------------------------ Icons ------------------------------ */
   var ICONS = {
     home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/>',
@@ -457,7 +480,7 @@
     ];
 
     container.innerHTML =
-      '<div class="page-header"><h1>Good ' + (t.h < 12 ? 'morning' : t.h < 17 ? 'afternoon' : 'evening') + ', trader</h1>' +
+      '<div class="page-header"><h1>Good ' + (t.h < 12 ? 'morning' : t.h < 17 ? 'afternoon' : 'evening') + ', ' + nameBtnHtml() + '</h1>' +
       '<p class="lede">' + dayNames[t.wd] + ', ' + moNames[t.mo - 1] + ' ' + t.d + ', ' + t.y + ' — plan the session, protect the downside, journal the result.</p></div>' +
 
       '<div class="grid cols-2">' +
@@ -526,7 +549,64 @@
     if (snap && snap.curve.length > 1 && window.Charts) {
       Charts.spark(document.getElementById('dash-spark'), snap.curve, { color: snap.net >= 0 ? 'var(--pos)' : 'var(--neg)', height: 44 });
     }
+    wireNameEdit(container);
     updateClockUI();
+  }
+
+  /* Greeting name — a button so it is reachable by keyboard and screen readers;
+     clicking swaps it for an input in place. */
+  function nameBtnHtml() {
+    var n = profileName();
+    return '<button type="button" class="name-edit' + (n ? '' : ' unset') + '" id="dash-name"' +
+      ' title="' + (n ? 'Change your name' : 'Add your name') + '"' +
+      ' aria-label="' + (n ? 'Your name: ' + esc(n) + '. Activate to change it.' : 'Add your name') + '">' +
+      esc(n || 'trader') + '</button>';
+  }
+
+  function wireNameEdit(container) {
+    var btn = container.querySelector('#dash-name');
+    if (btn) btn.addEventListener('click', function () { startNameEdit(container); });
+  }
+
+  function startNameEdit(container) {
+    var btn = container.querySelector('#dash-name');
+    if (!btn) return;
+
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'name-input';
+    input.maxLength = NAME_MAX;
+    input.value = profileName();
+    input.placeholder = 'your name';
+    input.autocomplete = 'off';
+    input.setAttribute('aria-label', 'Your name');
+    btn.parentNode.replaceChild(input, btn);
+    input.focus();
+    input.select();
+
+    /* blur fires when Enter/Escape swap the node back, so guard against a
+       second close undoing the first one's result */
+    var closed = false;
+    function close(save) {
+      if (closed) return;
+      closed = true;
+      var saved = save ? setProfileName(input.value) : profileName();
+      var holder = document.createElement('span');
+      holder.innerHTML = nameBtnHtml();
+      var fresh = holder.firstChild;
+      if (input.parentNode) input.parentNode.replaceChild(fresh, input);
+      fresh.addEventListener('click', function () { startNameEdit(container); });
+      if (save) {
+        fresh.focus();
+        toast(saved ? 'Hi, ' + saved : 'Name cleared', 'ok');
+      }
+    }
+
+    input.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter') { ev.preventDefault(); close(true); }
+      else if (ev.key === 'Escape') { ev.preventDefault(); close(false); }
+    });
+    input.addEventListener('blur', function () { close(true); });
   }
 
   function checklistStat() {
