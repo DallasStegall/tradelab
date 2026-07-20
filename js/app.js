@@ -142,7 +142,8 @@
     refresh: '<path d="M3 2v6h6"/><path d="M3.5 13a9 9 0 1 0 2-7.3L3 8"/>',
     brain: '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/>',
     layers: '<path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>',
-    dollar: '<path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'
+    dollar: '<path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+    cog: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'
   };
   function icon(name, size) {
     var s = size || 18;
@@ -267,8 +268,10 @@
     { id: 'journal',    label: 'Trade Journal',        icon: 'journal',   render: proxyModule('Journal', 'js/journal.js') },
     { id: 'tools',      label: 'Interactive Tools',    icon: 'calc',      render: proxyModule('Tools', 'js/tools.js') },
     { id: 'checklist',  label: 'Pre-Market Checklist', icon: 'clipboard', render: proxyModule('Checklist', 'js/checklist.js') },
+    { id: 'reflection', label: 'Daily Reflection',     icon: 'edit',      render: proxyModule('Diary', 'js/diary.js') },
     { id: 'quiz',       label: 'Quiz & Tests',         icon: 'quiz',      render: proxyModule('Quiz', 'js/quiz.js') },
-    { id: 'backup',     label: 'Backup & Sync',        icon: 'refresh',   render: proxyModule('Backup', 'js/backup.js') }
+    { id: 'backup',     label: 'Backup & Sync',        icon: 'refresh',   render: proxyModule('Backup', 'js/backup.js') },
+    { id: 'settings',   label: 'Settings',             icon: 'cog',       render: proxyModule('Settings', 'js/settings.js') }
   ];
 
   function proxyModule(name, file) {
@@ -353,11 +356,18 @@
     var meta = document.getElementById('meta-theme-color');
     if (meta) meta.setAttribute('content', cur === 'light' ? '#f9f9f7' : '#0d0d0d');
   }
-  function toggleTheme() {
-    var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', cur);
-    Store.set('theme', cur);
+  function getTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  }
+  function setTheme(t) {
+    var next = t === 'light' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    Store.set('theme', next);
     applyThemeIcon();
+    return next;
+  }
+  function toggleTheme() {
+    setTheme(getTheme() === 'dark' ? 'light' : 'dark');
   }
 
   /* ------------------------------ Dashboard ------------------------------ */
@@ -476,6 +486,7 @@
       { id: 'journal', icon: 'journal', desc: 'Log trades, track win rate, profit factor and your equity curve.', stat: snap ? (snap.n + ' trades · <span class="' + (snap.net >= 0 ? 'pos' : 'neg') + '">' + fmtMoney(snap.net, { sign: true }) + '</span>') : 'No trades logged yet' },
       { id: 'tools', icon: 'calc', desc: 'Position size, breakeven, Monte Carlo P/L simulator, volume profile.', stat: '4 interactive tools' },
       { id: 'checklist', icon: 'clipboard', desc: 'Daily pre-market routine plus screener criteria per strategy.', stat: checklistStat() },
+      { id: 'reflection', icon: 'edit', desc: 'End-of-day diary — sleep, discipline, emotion, lessons. Reread weekly.', stat: diaryStat() },
       { id: 'quiz', icon: 'quiz', desc: 'Strategy quizzes, candlestick pattern drills and risk scenarios.', stat: quizStat() }
     ];
 
@@ -624,6 +635,19 @@
       if (s) return esc(s);
     }
     return 'Quizzes & pattern drills';
+  }
+  function diaryStat() {
+    var M = window.Diary;
+    if (M && typeof M.status === 'function') {
+      var s = M.status();
+      if (s && s.count) {
+        var bits = [s.count + (s.count === 1 ? ' entry' : ' entries')];
+        if (s.streak > 1) bits.push(s.streak + '-day streak');
+        if (!s.today) bits.push('not written today');
+        return esc(bits.join(' · '));
+      }
+    }
+    return 'End-of-day notes — start tonight';
   }
 
   /* Live clock + pill (single global ticker).
@@ -833,6 +857,8 @@
     document.getElementById('menu-btn').innerHTML = icon('menu', 20);
     document.getElementById('menu-btn').addEventListener('click', openSidebar);
     document.getElementById('backdrop').addEventListener('click', closeSidebar);
+    var settingsBtn = document.getElementById('settings-btn');
+    if (settingsBtn) settingsBtn.innerHTML = icon('cog', 19);
 
     window.addEventListener('hashchange', route);
     window.addEventListener('beforeprint', function () {
@@ -879,7 +905,9 @@
   window.App = {
     Store: Store, esc: esc, fmtMoney: fmtMoney, fmtNum: fmtNum, fmtPct: fmtPct,
     uid: uid, todayKey: todayKey, tradePL: tradePL, toast: toast, icon: icon,
-    navigate: navigate, download: download, etNow: etNow, marketSession: marketSession
+    navigate: navigate, download: download, etNow: etNow, marketSession: marketSession,
+    NAME_MAX: NAME_MAX, profileName: profileName, setProfileName: setProfileName,
+    getTheme: getTheme, setTheme: setTheme
   };
 
   if (document.readyState === 'loading') {

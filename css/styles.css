@@ -446,6 +446,53 @@ details.acc .acc-body { padding: 2px 14px 13px; color: var(--ink-2); font-size: 
 }
 .progress.pos .progress-fill { background: var(--pos); }
 
+/* ---------- Daily Reflection ---------- */
+.mood-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.mood-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 13px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface-2);
+  color: var(--ink-2); font-size: .84rem; font-weight: 550; cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.mood-btn:hover { border-color: var(--border-strong); color: var(--ink); }
+.mood-btn.on { border-color: var(--dot, var(--accent)); color: var(--ink); background: var(--surface-3); }
+.mood-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mood-dot {
+  display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--dot, var(--ink-3)); flex: none;
+}
+.dr-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 10px; margin-top: 8px; flex-wrap: wrap;
+}
+#dr-saved.ok { color: var(--pos-text, var(--pos)); }
+#dr-saved.err { color: var(--neg-text, var(--neg)); font-weight: 600; }
+.dr-entry { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.dr-entry:last-child { border-bottom: 0; padding-bottom: 2px; }
+.dr-text {
+  margin-top: 6px; color: var(--ink-2);
+  white-space: pre-wrap; word-break: break-word; max-width: 75ch;
+}
+
+/* ---------- Settings ---------- */
+.field-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.seg {
+  display: inline-flex; gap: 4px; padding: 4px;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+}
+.seg-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 16px; border-radius: 7px;
+  border: 0; background: transparent; color: var(--ink-2);
+  font-size: .88rem; font-weight: 550; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.seg-btn:hover { color: var(--ink); }
+.seg-btn.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.seg-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.danger-card { border-color: var(--neg-text); }
+
 /* ---------- Quiz ---------- */
 .quiz-option {
   display: flex; align-items: flex-start; gap: 11px;

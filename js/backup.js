@@ -77,6 +77,11 @@
       var days = Object.keys(hist).length;
       if (days) out.push(days + ' checklist day' + (days === 1 ? '' : 's'));
     }
+    var dr = data['diary.entries'];
+    if (dr && typeof dr === 'object' && !Array.isArray(dr)) {
+      var dn = Object.keys(dr).length;
+      if (dn) out.push(dn + ' reflection' + (dn === 1 ? '' : 's'));
+    }
     if (data['checklist.state'] && data['checklist.state'].date) out.push('today’s checklist');
     if (data['tools.inputs']) out.push('tool inputs');
     if (data['journal.filters']) out.push('journal filters');
@@ -147,6 +152,24 @@
         };
       });
       put('quiz.scores', curQ);
+    }
+
+    /* diary — union by date; on the same day the most recently edited copy
+       wins (updatedAt, falling back to createdAt), ties keep this device */
+    var incD = inc['diary.entries'];
+    if (incD && typeof incD === 'object' && !Array.isArray(incD)) {
+      var curD = App.Store.get('diary.entries', {});
+      if (!curD || typeof curD !== 'object' || Array.isArray(curD)) curD = {};
+      Object.keys(incD).forEach(function (d) {
+        /* key shape gate: also blocks "__proto__" and friends from a hostile code */
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+        var a = curD[d], b = incD[d];
+        if (!b || typeof b !== 'object' || typeof b.text !== 'string') return;
+        var bS = +b.updatedAt || +b.createdAt || 0;
+        var aS = a ? (+a.updatedAt || +a.createdAt || 0) : -1;
+        if (!a || bS > aS) curD[d] = b;
+      });
+      put('diary.entries', curD);
     }
 
     /* checklist history — union by date, keep the higher completion */
