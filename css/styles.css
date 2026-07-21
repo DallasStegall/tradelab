@@ -493,6 +493,23 @@ details.acc .acc-body { padding: 2px 14px 13px; color: var(--ink-2); font-size: 
 .seg-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .danger-card { border-color: var(--neg-text); }
 
+/* ---------- Insights ---------- */
+.insight-card { border-left: 3px solid var(--border-strong); }
+.insight-card.pos { border-left-color: var(--pos); }
+.insight-card.neg { border-left-color: var(--neg); }
+.insight-head { display: flex; gap: 11px; align-items: flex-start; }
+.insight-ic {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 9px;
+  background: var(--surface-2); color: var(--ink-2);
+}
+.insight-card.pos .insight-ic { background: var(--pos-soft); color: var(--pos-text, var(--pos)); }
+.insight-card.neg .insight-ic { background: var(--neg-soft); color: var(--neg-text, var(--neg)); }
+.insight-title { font-weight: 600; font-size: .95rem; color: var(--ink); }
+.insight-value { font-weight: 700; font-size: 1.02rem; margin-top: 1px; }
+.insight-value.pos { color: var(--pos-text, var(--pos)); }
+.insight-value.neg { color: var(--neg-text, var(--neg)); }
+
 /* ---------- Quiz ---------- */
 .quiz-option {
   display: flex; align-items: flex-start; gap: 11px;

@@ -266,6 +266,7 @@
     { id: 'strategies', label: 'Strategy Library',     icon: 'book',      render: renderStrategies },
     { id: 'education',  label: 'Education Hub',        icon: 'cap',       render: renderEducation },
     { id: 'journal',    label: 'Trade Journal',        icon: 'journal',   render: proxyModule('Journal', 'js/journal.js') },
+    { id: 'insights',   label: 'Insights',             icon: 'brain',     render: proxyModule('Insights', 'js/insights.js') },
     { id: 'tools',      label: 'Interactive Tools',    icon: 'calc',      render: proxyModule('Tools', 'js/tools.js') },
     { id: 'checklist',  label: 'Pre-Market Checklist', icon: 'clipboard', render: proxyModule('Checklist', 'js/checklist.js') },
     { id: 'reflection', label: 'Daily Reflection',     icon: 'edit',      render: proxyModule('Diary', 'js/diary.js') },
@@ -484,6 +485,7 @@
       { id: 'strategies', icon: 'book', desc: 'ORB, Pullback and Scalping playbooks with rules, diagrams and worked examples.', stat: ((window.STRATEGY_DATA || []).length || 3) + ' playbooks' },
       { id: 'education', icon: 'cap', desc: 'Technical analysis, candlesticks, risk, psychology and session timing.', stat: ((window.EDUCATION_DATA || []).length || 5) + ' lessons' },
       { id: 'journal', icon: 'journal', desc: 'Log trades, track win rate, profit factor and your equity curve.', stat: snap ? (snap.n + ' trades · <span class="' + (snap.net >= 0 ? 'pos' : 'neg') + '">' + fmtMoney(snap.net, { sign: true }) + '</span>') : 'No trades logged yet' },
+      { id: 'insights', icon: 'brain', desc: 'Your own coach — patterns across trades, moods and prep. Offline, no advice.', stat: insightsStat() },
       { id: 'tools', icon: 'calc', desc: 'Position size, breakeven, Monte Carlo P/L simulator, volume profile.', stat: '4 interactive tools' },
       { id: 'checklist', icon: 'clipboard', desc: 'Daily pre-market routine plus screener criteria per strategy.', stat: checklistStat() },
       { id: 'reflection', icon: 'edit', desc: 'End-of-day diary — sleep, discipline, emotion, lessons. Reread weekly.', stat: diaryStat() },
@@ -635,6 +637,18 @@
       if (s) return esc(s);
     }
     return 'Quizzes & pattern drills';
+  }
+  function insightsStat() {
+    var M = window.Insights;
+    if (M && typeof M.status === 'function') {
+      var s = M.status();
+      if (s && s.trades) {
+        return s.patterns
+          ? esc(s.patterns + (s.patterns === 1 ? ' pattern found' : ' patterns found'))
+          : 'Building your profile…';
+      }
+    }
+    return 'Log trades to unlock';
   }
   function diaryStat() {
     var M = window.Diary;
