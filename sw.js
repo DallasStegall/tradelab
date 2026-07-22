@@ -2,14 +2,16 @@
    Bump VERSION on every deploy so clients pick up new files. */
 'use strict';
 
-var VERSION = 'tradelab-v8';
+var VERSION = 'tradelab-v9';
 var ASSETS = [
   './',
   './index.html',
   './css/styles.css',
   './js/charts.js',
   './js/data/strategies.js',
+  './js/data/strategies-extra.js',
   './js/data/education.js',
+  './js/data/education-extra.js',
   './js/checklist.js',
   './js/diary.js',
   './js/journal.js',

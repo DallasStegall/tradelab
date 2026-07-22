@@ -306,6 +306,25 @@
             '<p>The range can also be built from the first 15 or 30 minutes. Longer ranges filter more noise and produce fewer, higher-quality signals — at the cost of later entries and wider stops. Most day traders start with the 5-minute range on clean gappers and step up to 15 minutes on choppier names.</p>'
         },
         {
+          title: 'Choosing the range: 5, 10 or 15 minutes',
+          html:
+            '<p>The opening range is simply the window you decide the “opening” is. The three common choices trade speed against reliability — pick one per name before the bell and hold to it; switching mid-trade is how a plan becomes a guess.</p>' +
+            '<div class="table-wrap"><table class="table"><thead><tr><th>Range</th><th>Window (ET)</th><th>Character</th><th>Stop</th><th>Best for</th></tr></thead><tbody>' +
+            '<tr><td><strong>5-minute</strong></td><td>9:30–9:35</td><td>Earliest entry, most signals, most false breaks — one candle sets the level.</td><td>Tightest</td><td>Clean, liquid gappers with an obvious catalyst</td></tr>' +
+            '<tr><td><strong>10-minute</strong></td><td>9:30–9:40</td><td>The middle ground: a second candle of price discovery filters many 5-minute head-fakes while still entering before the morning trend is spent.</td><td>Medium</td><td>Most gappers, most days — a sensible default once the 5-min feels too noisy</td></tr>' +
+            '<tr><td><strong>15 / 30-minute</strong></td><td>9:30–9:45 / 10:00</td><td>Fewest, highest-quality signals; late, wide entries. The range often swallows the first pullback.</td><td>Widest</td><td>Choppy names, indices / ETFs, part-time traders</td></tr>' +
+            '</tbody></table></div>' +
+            '<div class="callout info"><div><b>Why 10 minutes makes a strong default.</b> The 5-minute range is defined by a single candle, so one liquidity spike can hand you a bad level. The 10-minute range is built from two candles of two-sided auction — it discards a lot of opening noise while still letting you in before ~9:45, when the cleanest ORB moves are usually already under way.</div></div>' +
+            '<p><strong>The setup in one breath</strong> — identical whichever length you choose:</p>' +
+            '<ol>' +
+            '<li>Pre-open, the name has already cleared the scan: gap ≥ 2% on a real catalyst, RVOL ≥ 2, price $5–500, tight spread, clean air overhead.</li>' +
+            '<li>Let your chosen window finish and mark its high and low. Do nothing inside the range.</li>' +
+            '<li>Trade only when a candle <em>closes</em> beyond the range on expanding volume, or on a break-and-retest hold of the broken edge.</li>' +
+            '<li>Stop at the range midpoint or beyond the opposite extreme; first target +1R, then the measured move (one full range projected from the break).</li>' +
+            '</ol>' +
+            '<p>Whatever you pick, keep it consistent across a stock’s history so your win-rate and expectancy numbers actually mean something — a 5-minute ORB and a 15-minute ORB are two different strategies wearing the same name.</p>'
+        },
+        {
           title: 'Setup criteria',
           html:
             '<p>Every box must be ticked before the open. If any is missing, the breakout is a guess, not a setup.</p>' +
