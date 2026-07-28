@@ -155,7 +155,84 @@
       explain: 'After a tight range, a candle that <em>closes</em> decisively below the range low (not just a wick) resolves the balance to the downside — trapped range-longs become sellers. Wait for the close, not the poke.' };
   }
 
-  var ARCHES = [bullFlag, bearFlag, pullbackBounce, maBreakdown, doubleTop, doubleBottom, sweepReclaim, rangeBreakdown];
+  function headShoulders(base) {
+    var u = base * 0.008, neck = base * 1.008, sh = base * 1.032, head = base * 1.055;
+    var closes = ramp(base, sh, 3, 0.2, u)
+      .concat(ramp(sh, neck, 2, 0.2, u))
+      .concat(ramp(neck, head, 3, 0.2, u))
+      .concat(ramp(head, neck, 3, 0.2, u))
+      .concat(ramp(neck, sh - rnd(0.2, 0.6) * u, 3, 0.2, u))  /* right shoulder = lower high */
+      .concat([neck + rnd(0.3, 0.8) * u]);                    /* rolling back toward the neckline */
+    var setup = candles(closes, u);
+    var future = candles(ramp(setup[setup.length - 1].c, base * 0.965, 6, 0.35, u), u);
+    return { name: 'Head and shoulders', answer: 'bear', setup: setup, future: future,
+      levels: [{ p: neck, label: 'Neckline', cls: 'neg' }], ma: null,
+      explain: 'Three peaks — a higher head between two lower shoulders — over a shared neckline. Once the right shoulder makes a lower high and price turns back down toward the neckline, this topping pattern favors a break lower. See <a href="#/strategies/support-resistance">Support & Resistance</a>.' };
+  }
+  function invHeadShoulders(base) {
+    var u = base * 0.008, neck = base * 0.992, sh = base * 0.968, head = base * 0.945;
+    var closes = ramp(base, sh, 3, 0.2, u)
+      .concat(ramp(sh, neck, 2, 0.2, u))
+      .concat(ramp(neck, head, 3, 0.2, u))
+      .concat(ramp(head, neck, 3, 0.2, u))
+      .concat(ramp(neck, sh + rnd(0.2, 0.6) * u, 3, 0.2, u))  /* right shoulder = higher low */
+      .concat([neck - rnd(0.3, 0.8) * u]);
+    var setup = candles(closes, u);
+    var future = candles(ramp(setup[setup.length - 1].c, base * 1.035, 6, 0.35, u), u);
+    return { name: 'Inverse head and shoulders', answer: 'bull', setup: setup, future: future,
+      levels: [{ p: neck, label: 'Neckline', cls: 'pos' }], ma: null,
+      explain: 'Three troughs — a lower head between two higher lows — a bottoming pattern. When the right shoulder makes a higher low and price turns up toward the neckline, the read favors a break higher.' };
+  }
+  function ascTriangle(base) {
+    var u = base * 0.008, res = base * 1.03;
+    var lows = [base * 0.995, base * 1.006, base * 1.016, base * 1.023];
+    var closes = [];
+    for (var i = 0; i < lows.length; i++) { closes.push(res - rnd(0.2, 0.5) * u); closes.push(lows[i]); }
+    closes.push(res - rnd(0.4, 0.9) * u);  /* coiled just under resistance */
+    var setup = candles(closes, u);
+    var future = candles(ramp(setup[setup.length - 1].c, base * 1.07, 6, 0.35, u), u);
+    return { name: 'Ascending triangle', answer: 'bull', setup: setup, future: future,
+      levels: [{ p: res, label: 'Resistance', cls: 'accent' }], ma: null,
+      explain: 'A flat ceiling of resistance pressed by rising higher lows — buyers stepping in earlier each time while sellers defend one price. The squeeze usually resolves with a break UP through the flat top.' };
+  }
+  function descTriangle(base) {
+    var u = base * 0.008, sup = base * 0.97;
+    var highs = [base * 1.005, base * 0.994, base * 0.984, base * 0.977];
+    var closes = [];
+    for (var i = 0; i < highs.length; i++) { closes.push(sup + rnd(0.2, 0.5) * u); closes.push(highs[i]); }
+    closes.push(sup + rnd(0.4, 0.9) * u);
+    var setup = candles(closes, u);
+    var future = candles(ramp(setup[setup.length - 1].c, base * 0.93, 6, 0.35, u), u);
+    return { name: 'Descending triangle', answer: 'bear', setup: setup, future: future,
+      levels: [{ p: sup, label: 'Support', cls: 'neg' }], ma: null,
+      explain: 'A flat floor of support pressed by falling lower highs — sellers stepping in earlier each time while buyers defend one price. The squeeze usually resolves with a break DOWN through the flat floor.' };
+  }
+  function breakoutRetest(base) {
+    var u = base * 0.008, lvl = base * 1.02;
+    var closes = oscillate(base * 1.005, lvl - 0.3 * u, 4, u)
+      .concat([lvl + rnd(0.6, 1.1) * u])                        /* breakout close above */
+      .concat(ramp(lvl + 0.8 * u, lvl + rnd(0.1, 0.3) * u, 2, 0.12, u)) /* pull back to the level */
+      .concat([lvl + rnd(0.4, 0.8) * u]);                       /* retest holds */
+    var setup = candles(closes, u);
+    var future = candles(ramp(setup[setup.length - 1].c, base * 1.06, 6, 0.35, u), u);
+    return { name: 'Breakout and retest', answer: 'bull', setup: setup, future: future,
+      levels: [{ p: lvl, label: 'Broken resistance → support', cls: 'accent' }], ma: null,
+      explain: 'Price breaks above resistance, pulls back to test that level from above, and holds — old resistance behaving as new support (role reversal). The retest that holds is the higher-probability entry. See <a href="#/strategies/orb">ORB</a> break-and-retest.' };
+  }
+  function falseBreakout(base) {
+    var u = base * 0.008, lvl = base * 1.02;
+    var closes = oscillate(base * 1.004, lvl - 0.3 * u, 4, u)
+      .concat([lvl + rnd(0.6, 1.0) * u])   /* pokes above the level */
+      .concat([lvl - rnd(0.5, 1.0) * u]);  /* closes back BELOW — the trap */
+    var setup = candles(closes, u);
+    var future = candles(ramp(setup[setup.length - 1].c, base * 0.965, 6, 0.35, u), u);
+    return { name: 'Failed breakout (bull trap)', answer: 'bear', setup: setup, future: future,
+      levels: [{ p: lvl, label: 'Resistance', cls: 'neg' }], ma: null,
+      explain: 'Price pushes above resistance but cannot hold and closes back below it — a bull trap. The breakout buyers are now offside and become sellers. The tell is the close back inside the level, not the poke above it.' };
+  }
+
+  var ARCHES = [bullFlag, bearFlag, pullbackBounce, maBreakdown, doubleTop, doubleBottom, sweepReclaim, rangeBreakdown,
+    headShoulders, invHeadShoulders, ascTriangle, descTriangle, breakoutRetest, falseBreakout];
 
   /* --------------------------- rendering --------------------------- */
   function sma(arr, period) {
@@ -279,16 +356,26 @@
     return scn;
   }
 
+  var TIMED_SECS = 15;
+
   function render(container, sub) {
     var streak = 0;               /* current session streak */
     var current = null;
     var answered = false;
+    var timed = App.Store.get('trainer.timed', false) === true;
+    var timer = null, timeLeft = 0;
+
+    function segBtn(mode, label, ic) {
+      return '<button type="button" class="seg-btn" data-mode="' + mode + '" aria-pressed="false">' + App.icon(ic, 15) + ' ' + label + '</button>';
+    }
 
     var root = document.createElement('div');
     root.innerHTML =
       '<div class="page-header"><h1>Chart Trainer</h1>' +
       '<p class="lede">Read the setup, call the next move. Each chart is a textbook setup drawn to a decision point — pick <b>bullish</b> or <b>bearish</b>, then see the continuation and why. Practice reps, no real money, no real ticker.</p></div>' +
       '<section class="card">' +
+      '<div class="ct-modebar"><div class="seg" id="ct-mode">' + segBtn('practice', 'Practice', 'book') + segBtn('timed', 'Timed', 'clock') + '</div>' +
+      '<div class="ct-timer" id="ct-timer" hidden></div></div>' +
       '<div class="ct-scorebar" id="ct-score"></div>' +
       '<div class="ct-chart" id="ct-chart"></div>' +
       '<div class="ct-tag small muted" id="ct-tag"></div>' +
@@ -307,7 +394,22 @@
     var scoreEl = root.querySelector('#ct-score');
     var controls = root.querySelector('#ct-controls');
     var resultEl = root.querySelector('#ct-result');
+    var modeEl = root.querySelector('#ct-mode');
+    var timerEl = root.querySelector('#ct-timer');
 
+    function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+    function paintTimer() {
+      if (!timed) { timerEl.hidden = true; return; }
+      timerEl.hidden = false;
+      timerEl.innerHTML = '<div class="sizing-timebar"><div class="sizing-timefill" style="width:' + Math.max(0, timeLeft / TIMED_SECS * 100) + '%"></div></div>' +
+        '<span class="small muted tnum">' + Math.max(0, timeLeft).toFixed(0) + 's</span>';
+    }
+    function paintMode() {
+      modeEl.querySelectorAll('.seg-btn').forEach(function (b) {
+        var on = b.getAttribute('data-mode') === (timed ? 'timed' : 'practice');
+        b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    }
     function paintScore() {
       var s = loadStats();
       var pct = s.plays ? Math.round(s.correct / s.plays * 100) : 0;
@@ -320,17 +422,27 @@
       current = newScenario();
       answered = false;
       chartEl.innerHTML = drawChart(current, false);
-      tagEl.textContent = 'What happens next?';
+      tagEl.textContent = timed ? 'What happens next? Beat the clock.' : 'What happens next?';
       controls.hidden = false;
       resultEl.hidden = true;
       resultEl.className = 'ct-result';
+      stopTimer();
+      if (timed) {
+        timeLeft = TIMED_SECS; paintTimer();
+        timer = setInterval(function () {
+          timeLeft -= 0.1; paintTimer();
+          if (timeLeft <= 0) { stopTimer(); if (!answered) answer(null); }
+        }, 100);
+      } else { paintTimer(); }
       paintScore();
     }
 
     function answer(guess) {
       if (answered || !current) return;
       answered = true;
-      var correct = guess === current.answer;
+      stopTimer(); timeLeft = 0; paintTimer();
+      var timedOut = guess == null;
+      var correct = !timedOut && guess === current.answer;
       var s = loadStats();
       s.plays += 1;
       if (correct) { s.correct += 1; streak += 1; if (streak > s.best) s.best = streak; }
@@ -345,7 +457,7 @@
       resultEl.className = 'ct-result ' + (correct ? 'ok' : 'no');
       resultEl.innerHTML =
         '<div class="ct-verdict">' + App.icon(correct ? 'check' : 'x', 18) +
-        '<span>' + (correct ? 'Correct — ' : 'Not this time — ') + 'this was <b>' + word + '</b></span></div>' +
+        '<span>' + (correct ? 'Correct — ' : timedOut ? 'Time’s up — ' : 'Not this time — ') + 'this was <b>' + word + '</b></span></div>' +
         '<p class="small" style="margin:8px 0 0;color:var(--ink-2)">' + current.explain + '</p>' +
         '<button type="button" class="btn btn-primary" id="ct-next" style="margin-top:14px">Next chart ' + App.icon('chevR', 15) + '</button>';
       resultEl.hidden = false;
@@ -359,9 +471,25 @@
       var b = ev.target.closest('[data-guess]');
       if (b) answer(b.getAttribute('data-guess'));
     });
+    modeEl.addEventListener('click', function (ev) {
+      var b = ev.target.closest('.seg-btn'); if (!b) return;
+      var nowTimed = b.getAttribute('data-mode') === 'timed';
+      if (nowTimed === timed) return;
+      timed = nowTimed;
+      App.Store.set('trainer.timed', timed);
+      paintMode();
+      loadRound();
+    });
+
+    /* kill the interval if the router swaps out this view */
+    var mo = new MutationObserver(function () {
+      if (!document.body.contains(root)) { stopTimer(); mo.disconnect(); }
+    });
+    mo.observe(document.getElementById('content'), { childList: true });
 
     container.innerHTML = '';
     container.appendChild(root);
+    paintMode();
     loadRound();
   }
 

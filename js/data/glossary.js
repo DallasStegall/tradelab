@@ -89,7 +89,7 @@
     { t: 'Volume', c: 'ta', d: 'The number of shares traded in a period. It confirms conviction: breakouts and trends backed by rising volume are more reliable.' },
     { t: 'Volume profile', c: 'structure', d: 'A histogram of volume traded at each price rather than over time. High-volume nodes act as magnets and support/resistance; low-volume nodes are traversed fast.' },
     { t: 'VWAP', c: 'ta', d: 'Volume-Weighted Average Price: the average price weighted by volume since the open, resetting daily. Institutions benchmark to it; above it is bullish bias, below it bearish.' },
-    { t: 'Wash sale', c: 'basics', d: 'A US tax rule disallowing a loss if you rebuy the same (or substantially identical) security within 30 days. Relevant at tax time, not for the trade itself.' },
+    { t: 'Wash sale', c: 'basics', d: 'A US tax rule disallowing a loss if you buy the same (or substantially identical) security within 30 days before or after the loss sale (a 61-day window). Relevant at tax time, not for the trade itself.' },
     { t: 'Watchlist', c: 'basics', d: 'The short, ranked list of names you will actually trade today, each pre-marked with levels and a plan. Focus beats coverage.' },
     { t: 'Whipsaw', c: 'ta', d: 'A sharp move in one direction that quickly reverses, stopping out both sides. Common in choppy, low-conviction, or low-volume conditions.' }
   ];

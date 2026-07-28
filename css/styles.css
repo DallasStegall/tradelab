@@ -531,6 +531,8 @@ details.acc .acc-body { padding: 2px 14px 13px; color: var(--ink-2); font-size: 
 .ct-result { margin-top: 16px; padding: 14px; border-radius: 12px; border: 1px solid var(--border); }
 .ct-result.ok { background: var(--pos-soft); border-color: var(--pos); }
 .ct-result.no { background: var(--neg-soft); border-color: var(--neg); }
+.ct-modebar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.ct-timer { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 120px; max-width: 220px; }
 .ct-verdict { display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 600; }
 .ct-result.ok .ct-verdict { color: var(--pos-text, var(--pos)); }
 .ct-result.no .ct-verdict { color: var(--neg-text, var(--neg)); }
