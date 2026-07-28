@@ -144,7 +144,8 @@
     layers: '<path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>',
     dollar: '<path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
     cog: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
-    candles: '<path d="M8 4v3M8 14v6"/><rect x="6" y="7" width="4" height="7" rx="1"/><path d="M16 3v5M16 16v5"/><rect x="14" y="8" width="4" height="8" rx="1"/>'
+    candles: '<path d="M8 4v3M8 14v6"/><rect x="6" y="7" width="4" height="7" rx="1"/><path d="M16 3v5M16 16v5"/><rect x="14" y="8" width="4" height="8" rx="1"/>',
+    game: '<rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4M8 10v4"/><path d="M15.5 11h.01M18 13.5h.01"/>'
   };
   function icon(name, size) {
     var s = size || 18;
@@ -273,6 +274,7 @@
     { id: 'reflection', label: 'Daily Reflection',     icon: 'edit',      render: proxyModule('Diary', 'js/diary.js') },
     { id: 'quiz',       label: 'Quiz & Tests',         icon: 'quiz',      render: proxyModule('Quiz', 'js/quiz.js') },
     { id: 'trainer',    label: 'Chart Trainer',        icon: 'candles',   render: proxyModule('ChartTrainer', 'js/chartsim.js') },
+    { id: 'games',      label: 'Games',                icon: 'game',      render: proxyModule('Games', 'js/games.js') },
     { id: 'backup',     label: 'Backup & Sync',        icon: 'refresh',   render: proxyModule('Backup', 'js/backup.js') },
     { id: 'settings',   label: 'Settings',             icon: 'cog',       render: proxyModule('Settings', 'js/settings.js') }
   ];
@@ -492,7 +494,8 @@
       { id: 'checklist', icon: 'clipboard', desc: 'Daily pre-market routine plus screener criteria per strategy.', stat: checklistStat() },
       { id: 'reflection', icon: 'edit', desc: 'End-of-day diary — sleep, discipline, emotion, lessons. Reread weekly.', stat: diaryStat() },
       { id: 'quiz', icon: 'quiz', desc: 'Strategy quizzes, candlestick pattern drills and risk scenarios.', stat: quizStat() },
-      { id: 'trainer', icon: 'candles', desc: 'Read a setup, call bull or bear, then see the continuation and why.', stat: trainerStat() }
+      { id: 'trainer', icon: 'candles', desc: 'Read a setup, call bull or bear, then see the continuation and why.', stat: trainerStat() },
+      { id: 'games', icon: 'game', desc: 'Quick drills: name the candlestick pattern, and size positions against the clock.', stat: gamesStat() }
     ];
 
     container.innerHTML =
@@ -652,6 +655,16 @@
       }
     }
     return 'Log trades to unlock';
+  }
+  function gamesStat() {
+    var M = window.Games;
+    if (M && typeof M.status === 'function') {
+      var s = M.status();
+      if (s && s.plays) {
+        return esc(s.plays + ' plays · ' + Math.round(s.correct / s.plays * 100) + '% correct');
+      }
+    }
+    return 'Pattern & sizing drills';
   }
   function trainerStat() {
     var M = window.ChartTrainer;

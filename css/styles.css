@@ -535,6 +535,35 @@ details.acc .acc-body { padding: 2px 14px 13px; color: var(--ink-2); font-size: 
 .ct-result.ok .ct-verdict { color: var(--pos-text, var(--pos)); }
 .ct-result.no .ct-verdict { color: var(--neg-text, var(--neg)); }
 
+/* ---------- Games ---------- */
+.game-figure {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px 8px; margin-bottom: 14px;
+}
+.game-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.game-opt {
+  padding: 12px 14px; border-radius: 10px; text-align: left;
+  border: 1px solid var(--border); background: var(--surface-2);
+  color: var(--ink); font-size: .95rem; font-weight: 550; cursor: pointer;
+  transition: border-color .12s, background .12s;
+}
+.game-opt:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+.game-opt:disabled { cursor: default; }
+.game-opt.correct { border-color: var(--pos); background: var(--pos-soft); color: var(--pos-text, var(--pos)); font-weight: 650; }
+.game-opt.wrong { border-color: var(--neg); background: var(--neg-soft); color: var(--neg-text, var(--neg)); }
+@media (max-width: 560px) { .game-opts { grid-template-columns: 1fr; } }
+
+.sizing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.sizing-grid > div {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 3px;
+}
+.sizing-lbl { font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); }
+.sizing-num { font-size: 1.35rem; font-weight: 700; color: var(--ink); }
+.sizing-timer { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.sizing-timebar { flex: 1; height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; }
+.sizing-timefill { height: 100%; background: var(--accent); transition: width .1s linear; }
+
 /* ---------- Quiz ---------- */
 .quiz-option {
   display: flex; align-items: flex-start; gap: 11px;
