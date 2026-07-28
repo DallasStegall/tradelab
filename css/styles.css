@@ -583,6 +583,20 @@ details.acc .acc-body { padding: 2px 14px 13px; color: var(--ink-2); font-size: 
 .gl-term { font-weight: 650; color: var(--ink); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .gl-def { margin-top: 3px; color: var(--ink-2); max-width: 74ch; }
 
+/* ---------- Resources ---------- */
+.res-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
+@media (max-width: 620px) { .res-list { grid-template-columns: 1fr; } }
+.res-item {
+  display: block; padding: 13px 15px; border-radius: 11px;
+  border: 1px solid var(--border); background: var(--surface-2);
+  transition: border-color .12s, background .12s, transform .05s;
+}
+.res-item:hover { border-color: var(--accent); background: var(--accent-soft); }
+.res-name { font-weight: 650; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+.res-name .icon { color: var(--ink-3); }
+.res-desc { margin-top: 4px; color: var(--ink-2); }
+.res-url { margin-top: 6px; word-break: break-all; }
+
 /* ---------- Quiz ---------- */
 .quiz-option {
   display: flex; align-items: flex-start; gap: 11px;

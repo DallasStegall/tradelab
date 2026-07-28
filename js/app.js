@@ -145,7 +145,8 @@
     dollar: '<path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
     cog: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
     candles: '<path d="M8 4v3M8 14v6"/><rect x="6" y="7" width="4" height="7" rx="1"/><path d="M16 3v5M16 16v5"/><rect x="14" y="8" width="4" height="8" rx="1"/>',
-    game: '<rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4M8 10v4"/><path d="M15.5 11h.01M18 13.5h.01"/>'
+    game: '<rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4M8 10v4"/><path d="M15.5 11h.01M18 13.5h.01"/>',
+    link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'
   };
   function icon(name, size) {
     var s = size || 18;
@@ -268,6 +269,7 @@
     { id: 'strategies', label: 'Strategy Library',     icon: 'book',      render: renderStrategies },
     { id: 'education',  label: 'Education Hub',        icon: 'cap',       render: renderEducation },
     { id: 'glossary',   label: 'Glossary',             icon: 'search',    render: proxyModule('Glossary', 'js/glossary.js') },
+    { id: 'resources',  label: 'Resources',            icon: 'link',      render: proxyModule('Resources', 'js/resources.js') },
     { id: 'journal',    label: 'Trade Journal',        icon: 'journal',   render: proxyModule('Journal', 'js/journal.js') },
     { id: 'insights',   label: 'Insights',             icon: 'brain',     render: proxyModule('Insights', 'js/insights.js') },
     { id: 'tools',      label: 'Interactive Tools',    icon: 'calc',      render: proxyModule('Tools', 'js/tools.js') },
