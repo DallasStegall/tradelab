@@ -82,6 +82,7 @@
       var dn = Object.keys(dr).length;
       if (dn) out.push(dn + ' reflection' + (dn === 1 ? '' : 's'));
     }
+    if (Array.isArray(data.plans) && data.plans.length) out.push(data.plans.length + ' trade plan' + (data.plans.length === 1 ? '' : 's'));
     if (data['checklist.state'] && data['checklist.state'].date) out.push('today’s checklist');
     if (data['tools.inputs']) out.push('tool inputs');
     if (data['journal.filters']) out.push('journal filters');
@@ -170,6 +171,21 @@
         if (!a || bS > aS) curD[d] = b;
       });
       put('diary.entries', curD);
+    }
+
+    /* saved trade plans — union by id; the most recently saved copy wins */
+    var incP = inc.plans;
+    if (Array.isArray(incP)) {
+      var curP = App.Store.get('plans', []);
+      if (!Array.isArray(curP)) curP = [];
+      var byId = Object.create(null);
+      curP.forEach(function (p) { if (p && p.id != null) byId[p.id] = p; });
+      incP.forEach(function (p) {
+        if (!p || typeof p !== 'object' || p.id == null) return;
+        var mine = byId[p.id];
+        if (!mine || (+p.savedAt || 0) > (+mine.savedAt || 0)) byId[p.id] = p;
+      });
+      put('plans', Object.keys(byId).map(function (k) { return byId[k]; }));
     }
 
     /* checklist history — union by date, keep the higher completion */

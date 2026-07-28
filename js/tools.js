@@ -13,7 +13,8 @@
     { id: 'position', label: 'Position size', icon: 'target' },
     { id: 'breakeven', label: 'Breakeven', icon: 'dollar' },
     { id: 'simulator', label: 'P/L simulator', icon: 'trend' },
-    { id: 'volume-profile', label: 'Volume profile', icon: 'layers' }
+    { id: 'volume-profile', label: 'Volume profile', icon: 'layers' },
+    { id: 'trade-plan', label: 'Trade plan', icon: 'clipboard' }
   ];
 
   /* ------------------------------ input persistence ------------------------------ */
@@ -476,6 +477,165 @@
     select(selected);
   }
 
+  /* =============================== TRADE PLAN =============================== */
+  function renderTradePlan(body) {
+    var inp = loadInputs('trade-plan', { symbol: '', dir: 'long', catalyst: '', setup: '', entry: '', stop: '', target: '', account: 30000, risk: 1 });
+    var strats = (window.STRATEGY_DATA || []).map(function (s) { return s.name; });
+
+    function field(id, label, value, ph) {
+      return '<div class="field"><label class="label" for="' + id + '">' + label + '</label>' +
+        '<input class="input" type="text" id="' + id + '" value="' + App.esc(String(value || '')) + '" placeholder="' + App.esc(ph || '') + '" autocomplete="off"></div>';
+    }
+    body.innerHTML =
+      '<section class="card no-print">' +
+      '<div class="card-title">' + App.icon('clipboard', 15) + ' Build a trade plan</div>' +
+      '<p class="small muted" style="margin:4px 0 14px">Write the plan before the trade, not during it. Fill this in, and the preview below becomes a clean sheet you can print or save.</p>' +
+      '<div class="form-grid">' +
+      field('tp-symbol', 'Symbol', inp.symbol, 'AAPL') +
+      '<div class="field"><label class="label" for="tp-dir">Direction</label><select class="select" id="tp-dir">' +
+      '<option value="long"' + (inp.dir === 'long' ? ' selected' : '') + '>Long</option>' +
+      '<option value="short"' + (inp.dir === 'short' ? ' selected' : '') + '>Short</option></select></div>' +
+      '<div class="field" style="grid-column:1/-1"><label class="label" for="tp-catalyst">Catalyst / thesis</label>' +
+      '<input class="input" type="text" id="tp-catalyst" value="' + App.esc(String(inp.catalyst || '')) + '" placeholder="Why this, why now? e.g. earnings beat + raised guidance" autocomplete="off"></div>' +
+      '<div class="field" style="grid-column:1/-1"><label class="label" for="tp-setup">Setup</label>' +
+      '<input class="input" type="text" id="tp-setup" list="tp-setups" value="' + App.esc(String(inp.setup || '')) + '" placeholder="e.g. Opening Range Breakout" autocomplete="off">' +
+      '<datalist id="tp-setups">' + strats.map(function (n) { return '<option value="' + App.esc(n) + '">'; }).join('') + '</datalist></div>' +
+      numField('tp-entry', 'Entry ($)', inp.entry, '0.01') +
+      numField('tp-stop', 'Stop ($)', inp.stop, '0.01', 'The level that proves the plan wrong.') +
+      numField('tp-target', 'Target ($)', inp.target, '0.01') +
+      numField('tp-account', 'Account ($)', inp.account, '100') +
+      numField('tp-risk', 'Risk per trade (%)', inp.risk, '0.05') +
+      '</div>' +
+      '<div class="row" style="flex-wrap:wrap;gap:10px;margin-top:16px">' +
+      '<button type="button" class="btn btn-primary" id="tp-save">' + App.icon('check', 15) + ' Save plan</button>' +
+      '<button type="button" class="btn" id="tp-print">' + App.icon('print', 15) + ' Print plan</button>' +
+      '<button type="button" class="btn" id="tp-clear">Clear</button>' +
+      '</div></section>' +
+      '<div id="tp-preview" style="margin-top:16px"></div>' +
+      '<section class="card no-print" id="tp-saved" style="margin-top:16px"></section>';
+
+    function vals() {
+      return {
+        symbol: body.querySelector('#tp-symbol').value.trim(),
+        dir: body.querySelector('#tp-dir').value === 'short' ? 'short' : 'long',
+        catalyst: body.querySelector('#tp-catalyst').value.trim(),
+        setup: body.querySelector('#tp-setup').value.trim(),
+        entry: num(body.querySelector('#tp-entry')),
+        stop: num(body.querySelector('#tp-stop')),
+        target: num(body.querySelector('#tp-target')),
+        account: num(body.querySelector('#tp-account')),
+        risk: num(body.querySelector('#tp-risk'))
+      };
+    }
+
+    function renderPreview() {
+      var v = vals();
+      saveInputs('trade-plan', v);
+      var pv = body.querySelector('#tp-preview');
+      var sym = v.symbol || '—';
+      var dirTxt = v.dir === 'long' ? 'Long' : 'Short';
+      var rows = '';
+      var metrics = '';
+      if (v.entry > 0 && v.stop > 0 && v.entry !== v.stop) {
+        var perShare = Math.abs(v.entry - v.stop);
+        var shares = (v.account > 0 && v.risk > 0) ? Math.floor(v.account * v.risk / 100 / perShare) : null;
+        var riskeD = shares != null ? shares * perShare : (v.account > 0 && v.risk > 0 ? v.account * v.risk / 100 : null);
+        var rr = (v.target > 0) ? Math.abs(v.target - v.entry) / perShare : null;
+        /* sanity: target should be on the profitable side of entry for the chosen direction */
+        var targetOk = v.target > 0 && ((v.dir === 'long' && v.target > v.entry) || (v.dir === 'short' && v.target < v.entry));
+        metrics =
+          '<div class="kpi-row" style="margin-top:4px">' +
+          (shares != null ? stat('Shares', '<b>' + App.fmtNum(shares, 0) + '</b>') : '') +
+          (riskeD != null ? stat('Risk', App.fmtMoney(riskeD, { dec: 0 })) : '') +
+          (rr != null ? stat('Reward : risk', (targetOk ? '' : '<span class="neg">') + '1 : ' + App.fmtNum(rr, 1) + (targetOk ? '' : '</span>')) : '') +
+          (shares != null ? stat('Position', App.fmtMoney(shares * v.entry, { dec: 0 })) : '') +
+          '</div>' +
+          (rr != null && !targetOk ? '<div class="callout warn" style="margin-top:10px">' + App.icon('alert') + '<div>Your target is on the wrong side of entry for a ' + dirTxt.toLowerCase() + ' — a ' + dirTxt.toLowerCase() + ' profits as price moves ' + (v.dir === 'long' ? 'up' : 'down') + '.</div></div>' : '');
+        rows =
+          '<tr><th>Entry</th><td class="tnum">' + v.entry.toFixed(2) + '</td></tr>' +
+          '<tr><th>Stop (invalidation)</th><td class="tnum">' + v.stop.toFixed(2) + '</td></tr>' +
+          (v.target > 0 ? '<tr><th>Target</th><td class="tnum">' + v.target.toFixed(2) + '</td></tr>' : '');
+      } else {
+        rows = '<tr><td class="small muted" style="padding:8px 0">Enter an entry and stop to compute size and reward.</td></tr>';
+      }
+      pv.innerHTML =
+        '<section class="card plan-sheet">' +
+        '<div class="spread" style="align-items:baseline"><h2 style="margin:0">' + App.esc(sym) + ' · <span class="' + (v.dir === 'long' ? 'pos' : 'neg') + '">' + dirTxt + '</span></h2>' +
+        '<span class="small muted">Trade plan</span></div>' +
+        (v.setup ? '<p class="small" style="margin:6px 0 0"><b>Setup:</b> ' + App.esc(v.setup) + '</p>' : '') +
+        (v.catalyst ? '<p class="small" style="margin:4px 0 0"><b>Thesis:</b> ' + App.esc(v.catalyst) + '</p>' : '') +
+        '<div class="table-wrap" style="margin-top:12px"><table class="table"><tbody>' + rows + '</tbody></table></div>' +
+        metrics +
+        '<p class="small muted" style="margin:12px 0 0">Rules: take the trade only if it triggers as written. If price hits the stop, the thesis is wrong — exit without negotiating. No plan, no trade.</p>' +
+        '</section>';
+    }
+
+    function renderSaved() {
+      var list = App.Store.get('plans', []);
+      if (!Array.isArray(list)) list = [];
+      var box = body.querySelector('#tp-saved');
+      var head = '<div class="card-title">' + App.icon('journal', 15) + ' Saved plans <span class="badge">' + list.length + '</span></div>';
+      if (!list.length) { box.innerHTML = head + '<p class="small muted" style="margin:6px 0 0">Saved plans appear here and travel with your backups.</p>'; return; }
+      var rows = list.slice().reverse().map(function (p) {
+        return '<div class="dr-entry"><div class="spread" style="gap:10px;flex-wrap:wrap">' +
+          '<div><b>' + App.esc(p.symbol || '—') + '</b> <span class="' + (p.dir === 'short' ? 'neg' : 'pos') + '">' + (p.dir === 'short' ? 'Short' : 'Long') + '</span>' +
+          '<span class="small muted"> · entry ' + (isFinite(+p.entry) ? (+p.entry).toFixed(2) : '—') + ' / stop ' + (isFinite(+p.stop) ? (+p.stop).toFixed(2) : '—') + '</span></div>' +
+          '<div class="row" style="gap:6px"><button type="button" class="btn btn-sm" data-load="' + App.esc(p.id) + '">Load</button>' +
+          '<button type="button" class="btn btn-sm" data-del="' + App.esc(p.id) + '" aria-label="Delete plan">' + App.icon('trash', 13) + '</button></div></div></div>';
+      }).join('');
+      box.innerHTML = head + '<div style="margin-top:8px">' + rows + '</div>';
+    }
+
+    body.addEventListener('input', renderPreview);
+    body.addEventListener('change', renderPreview);
+
+    body.querySelector('#tp-save').addEventListener('click', function () {
+      var v = vals();
+      if (!v.symbol && !(v.entry > 0)) { App.toast('Add at least a symbol or an entry before saving', 'err'); return; }
+      var list = App.Store.get('plans', []);
+      if (!Array.isArray(list)) list = [];
+      list.push({ id: App.uid(), savedAt: Date.now(), symbol: v.symbol, dir: v.dir, catalyst: v.catalyst, setup: v.setup, entry: v.entry, stop: v.stop, target: v.target, account: v.account, risk: v.risk });
+      if (list.length > 100) list = list.slice(-100);
+      App.Store.set('plans', list);
+      App.toast('Plan saved', 'ok');
+      renderSaved();
+    });
+    body.querySelector('#tp-print').addEventListener('click', function () { window.print(); });
+    body.querySelector('#tp-clear').addEventListener('click', function () {
+      ['tp-symbol', 'tp-catalyst', 'tp-setup', 'tp-entry', 'tp-stop', 'tp-target'].forEach(function (id) { body.querySelector('#' + id).value = ''; });
+      renderPreview();
+    });
+    body.querySelector('#tp-saved').addEventListener('click', function (ev) {
+      var loadBtn = ev.target.closest('[data-load]'), delBtn = ev.target.closest('[data-del]');
+      var list = App.Store.get('plans', []); if (!Array.isArray(list)) list = [];
+      if (loadBtn) {
+        var p = list.filter(function (x) { return x.id === loadBtn.getAttribute('data-load'); })[0];
+        if (p) {
+          body.querySelector('#tp-symbol').value = p.symbol || '';
+          body.querySelector('#tp-dir').value = p.dir === 'short' ? 'short' : 'long';
+          body.querySelector('#tp-catalyst').value = p.catalyst || '';
+          body.querySelector('#tp-setup').value = p.setup || '';
+          body.querySelector('#tp-entry').value = isFinite(+p.entry) ? p.entry : '';
+          body.querySelector('#tp-stop').value = isFinite(+p.stop) ? p.stop : '';
+          body.querySelector('#tp-target').value = isFinite(+p.target) ? p.target : '';
+          if (isFinite(+p.account)) body.querySelector('#tp-account').value = p.account;
+          if (isFinite(+p.risk)) body.querySelector('#tp-risk').value = p.risk;
+          renderPreview();
+          body.querySelector('#tp-preview').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      } else if (delBtn) {
+        if (window.confirm('Delete this saved plan?')) {
+          list = list.filter(function (x) { return x.id !== delBtn.getAttribute('data-del'); });
+          App.Store.set('plans', list);
+          renderSaved();
+        }
+      }
+    });
+
+    renderPreview();
+    renderSaved();
+  }
+
   /* =============================== shell =============================== */
 
   function render(container, sub) {
@@ -505,6 +665,7 @@
     if (active === 'position') renderPosition(body);
     else if (active === 'breakeven') renderBreakeven(body);
     else if (active === 'simulator') renderSimulator(body);
+    else if (active === 'trade-plan') renderTradePlan(body);
     else renderVolumeProfile(body);
   }
 
