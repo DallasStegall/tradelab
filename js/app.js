@@ -267,6 +267,7 @@
     { id: 'dashboard',  label: 'Dashboard',            icon: 'home',      render: renderDashboard },
     { id: 'strategies', label: 'Strategy Library',     icon: 'book',      render: renderStrategies },
     { id: 'education',  label: 'Education Hub',        icon: 'cap',       render: renderEducation },
+    { id: 'glossary',   label: 'Glossary',             icon: 'search',    render: proxyModule('Glossary', 'js/glossary.js') },
     { id: 'journal',    label: 'Trade Journal',        icon: 'journal',   render: proxyModule('Journal', 'js/journal.js') },
     { id: 'insights',   label: 'Insights',             icon: 'brain',     render: proxyModule('Insights', 'js/insights.js') },
     { id: 'tools',      label: 'Interactive Tools',    icon: 'calc',      render: proxyModule('Tools', 'js/tools.js') },

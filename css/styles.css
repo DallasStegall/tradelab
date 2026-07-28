@@ -564,6 +564,23 @@ details.acc .acc-body { padding: 2px 14px 13px; color: var(--ink-2); font-size: 
 .sizing-timebar { flex: 1; height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; }
 .sizing-timefill { height: 100%; background: var(--accent); transition: width .1s linear; }
 
+/* ---------- Glossary ---------- */
+.gl-chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0 4px; }
+.chip {
+  padding: 5px 12px; border-radius: 999px; font-size: .82rem; font-weight: 550;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--ink-2);
+  cursor: pointer; transition: border-color .12s, background .12s, color .12s;
+}
+.chip:hover { color: var(--ink); border-color: var(--border-strong); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gl-count { margin: 6px 0 10px; }
+.gl-list { display: flex; flex-direction: column; }
+.gl-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.gl-item:last-child { border-bottom: 0; }
+.gl-term { font-weight: 650; color: var(--ink); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.gl-def { margin-top: 3px; color: var(--ink-2); max-width: 74ch; }
+
 /* ---------- Quiz ---------- */
 .quiz-option {
   display: flex; align-items: flex-start; gap: 11px;
