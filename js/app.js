@@ -143,7 +143,8 @@
     brain: '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/>',
     layers: '<path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>',
     dollar: '<path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
-    cog: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'
+    cog: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+    candles: '<path d="M8 4v3M8 14v6"/><rect x="6" y="7" width="4" height="7" rx="1"/><path d="M16 3v5M16 16v5"/><rect x="14" y="8" width="4" height="8" rx="1"/>'
   };
   function icon(name, size) {
     var s = size || 18;
@@ -271,6 +272,7 @@
     { id: 'checklist',  label: 'Pre-Market Checklist', icon: 'clipboard', render: proxyModule('Checklist', 'js/checklist.js') },
     { id: 'reflection', label: 'Daily Reflection',     icon: 'edit',      render: proxyModule('Diary', 'js/diary.js') },
     { id: 'quiz',       label: 'Quiz & Tests',         icon: 'quiz',      render: proxyModule('Quiz', 'js/quiz.js') },
+    { id: 'trainer',    label: 'Chart Trainer',        icon: 'candles',   render: proxyModule('ChartTrainer', 'js/chartsim.js') },
     { id: 'backup',     label: 'Backup & Sync',        icon: 'refresh',   render: proxyModule('Backup', 'js/backup.js') },
     { id: 'settings',   label: 'Settings',             icon: 'cog',       render: proxyModule('Settings', 'js/settings.js') }
   ];
@@ -489,7 +491,8 @@
       { id: 'tools', icon: 'calc', desc: 'Position size, breakeven, Monte Carlo P/L simulator, volume profile.', stat: '4 interactive tools' },
       { id: 'checklist', icon: 'clipboard', desc: 'Daily pre-market routine plus screener criteria per strategy.', stat: checklistStat() },
       { id: 'reflection', icon: 'edit', desc: 'End-of-day diary — sleep, discipline, emotion, lessons. Reread weekly.', stat: diaryStat() },
-      { id: 'quiz', icon: 'quiz', desc: 'Strategy quizzes, candlestick pattern drills and risk scenarios.', stat: quizStat() }
+      { id: 'quiz', icon: 'quiz', desc: 'Strategy quizzes, candlestick pattern drills and risk scenarios.', stat: quizStat() },
+      { id: 'trainer', icon: 'candles', desc: 'Read a setup, call bull or bear, then see the continuation and why.', stat: trainerStat() }
     ];
 
     container.innerHTML =
@@ -649,6 +652,17 @@
       }
     }
     return 'Log trades to unlock';
+  }
+  function trainerStat() {
+    var M = window.ChartTrainer;
+    if (M && typeof M.status === 'function') {
+      var s = M.status();
+      if (s && s.plays) {
+        var pct = Math.round(s.correct / s.plays * 100);
+        return esc(s.correct + '/' + s.plays + ' read · ' + pct + '%' + (s.best > 1 ? ' · best streak ' + s.best : ''));
+      }
+    }
+    return 'Predict bull or bear';
   }
   function diaryStat() {
     var M = window.Diary;
