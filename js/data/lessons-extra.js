@@ -288,5 +288,88 @@
     ]
   };
 
-  window.EDUCATION_DATA = (window.EDUCATION_DATA || []).concat([TOPIC, MARKETS, FUNDED]);
+  var STYLES = {
+    id: 'trading-styles',
+    title: 'Trading Styles & Timeframes',
+    icon: 'clock',
+    blurb: 'Scalping, day trading, momentum and swing trading — how long each holds, what it demands of you, and which fits your life.',
+    minutes: 11,
+    sections: [
+      {
+        title: 'How long you hold is your style',
+        html:
+          '<p>The same candlesticks, levels and risk math run through every style in this app. What separates a scalper from a swing trader is mostly one thing: <strong>how long a position is held</strong>, and therefore which chart timeframe you live on and how many decisions you make a day.</p>' +
+          '<p>There is no “best” style — only the one that fits your <strong>available time, temperament and capital</strong>. A style that clashes with your life will lose money no matter how good the setup, because you will not be there to trade it well.</p>' +
+          '<div class="callout info"><div><b>Pick the fit, not the fantasy.</b> Faster is not more profitable — it is just faster. Scalping looks exciting and is the hardest to do well; swing trading is quieter and often kinder to a beginner’s schedule and nerves.</div></div>'
+      },
+      {
+        title: 'Scalping — seconds to minutes',
+        html:
+          '<p><strong>Scalping</strong> is the fastest style: many trades a day, each aiming for a small, fixed move (often just cents) with a very tight stop. Profit comes from doing a small edge <em>many times</em>, not from any one big win.</p>' +
+          '<ul>' +
+          '<li><strong>Hold time:</strong> seconds to a few minutes. <strong>Charts:</strong> 1-minute and tick.</li>' +
+          '<li><strong>Demands:</strong> deep liquidity, low commissions and tight spreads (costs eat small targets alive), fast execution, and intense, sustained focus.</li>' +
+          '<li><strong>Reality check:</strong> the highest skill and stress ceiling here. A single sloppy exit can erase many good scalps, so discipline and a daily loss limit matter more than anywhere else.</li>' +
+          '</ul>' +
+          '<p>TradeLab has a full playbook for this: see <a href="#/strategies/scalping">Scalping (level-to-level)</a>.</p>'
+      },
+      {
+        title: 'Day trading — minutes to hours',
+        html:
+          '<p><strong>Day trading</strong> opens and closes positions within the same session and finishes <strong>flat by the close</strong> — no positions held overnight, so no overnight gap risk. This is the style most of this app is built around.</p>' +
+          '<ul>' +
+          '<li><strong>Hold time:</strong> minutes to hours. <strong>Charts:</strong> 1- to 15-minute.</li>' +
+          '<li><strong>Trade-off:</strong> you sidestep overnight risk, but you must be at the screen during market hours, and the US <a href="#/education/order-types">Pattern Day Trader</a> rule applies to accounts under $25,000.</li>' +
+          '<li>Most playbooks here — <a href="#/strategies/orb">ORB</a>, <a href="#/strategies/pullback">Pullback</a> — are day-trading setups.</li>' +
+          '</ul>'
+      },
+      {
+        title: 'Momentum trading — trade what is moving',
+        html:
+          '<p><strong>Momentum trading</strong> is less a timeframe than an <em>approach</em>: buy strength and sell weakness, entering names that are already moving hard on volume and a catalyst, and riding the continuation until it stalls. You can apply it intraday or over several days.</p>' +
+          '<ul>' +
+          '<li><strong>The idea:</strong> a stock in motion tends to stay in motion — fresh news pulls in more buyers, short sellers cover, and the move feeds itself, until it exhausts.</li>' +
+          '<li><strong>What it needs:</strong> relative volume (<a href="#/glossary">RVOL</a>) and a real catalyst; momentum without participation fades. Entries come on continuation, not by guessing tops or bottoms.</li>' +
+          '<li><strong>The risk:</strong> momentum reverses fast and late entries are brutal — chasing a move that already ran is the classic momentum mistake. It rewards decisiveness and punishes hesitation and greed.</li>' +
+          '</ul>' +
+          '<p>Momentum tools and setups here: <a href="#/strategies/macd">MACD Momentum</a>, <a href="#/strategies/orb">Opening Range Breakout</a>, and <a href="#/strategies/abcd">ABCD</a>.</p>'
+      },
+      {
+        title: 'Swing trading — days to weeks',
+        html:
+          '<p><strong>Swing trading</strong> holds a position for <strong>several days to a few weeks</strong> to capture one larger “swing” in price — a multi-day leg of a trend or a bounce from support. Far fewer decisions than day trading, at the cost of accepting overnight and weekend risk.</p>' +
+          '<ul>' +
+          '<li><strong>Hold time:</strong> days to weeks. <strong>Charts:</strong> hourly and daily, with the weekly for context.</li>' +
+          '<li><strong>Fits:</strong> people who cannot watch screens all day. You can plan trades in the evening, set orders, and check in once or twice a day.</li>' +
+          '<li><strong>The catch — gap risk:</strong> holding overnight means news can gap the stock through your stop before you can act, so stops are wider and position sizes smaller. Earnings dates become landmines to plan around.</li>' +
+          '<li><strong>Bonus:</strong> the PDT rule is a non-issue, since trades span multiple days rather than round-tripping intraday.</li>' +
+          '</ul>'
+      },
+      {
+        title: 'Position trading — weeks to months',
+        html:
+          '<p>For completeness: <strong>position trading</strong> holds for <strong>weeks to months</strong>, following major trends and often blending in fundamentals. It sits closest to investing — the widest stops, the fewest trades, and the least screen time of any active style.</p>'
+      },
+      {
+        title: 'Which one fits you?',
+        html:
+          '<div class="table-wrap"><table class="table"><thead><tr><th>Style</th><th>Typical hold</th><th>Charts</th><th>Trades / day</th><th>Overnight risk</th></tr></thead><tbody>' +
+          '<tr><td><strong>Scalping</strong></td><td>Seconds–minutes</td><td>Tick, 1-min</td><td>Many (dozens)</td><td>None</td></tr>' +
+          '<tr><td><strong>Day trading</strong></td><td>Minutes–hours</td><td>1–15 min</td><td>A few</td><td>None</td></tr>' +
+          '<tr><td><strong>Swing trading</strong></td><td>Days–weeks</td><td>Hourly, daily</td><td>&lt; 1 (a few a week)</td><td>Yes</td></tr>' +
+          '<tr><td><strong>Position trading</strong></td><td>Weeks–months</td><td>Daily, weekly</td><td>Rare</td><td>Yes</td></tr>' +
+          '</tbody></table></div>' +
+          '<p><em>Momentum</em> is deliberately absent from the table — it is a way of choosing <em>what</em> to trade (things in motion) that you can layer onto day trading or swing trading alike.</p>' +
+          '<p>Choose by honest self-assessment, not by which looks most thrilling:</p>' +
+          '<ul>' +
+          '<li><strong>Full days free and quick reflexes?</strong> Day trading or scalping are open to you — but start with day trading; scalping’s margins are unforgiving to learn on.</li>' +
+          '<li><strong>A day job or limited screen time?</strong> Swing trading almost certainly fits better than fighting the market on a phone between meetings.</li>' +
+          '<li><strong>Hate holding through uncertainty?</strong> The flat-by-the-close styles (day, scalp) will let you sleep; swing and position trading will not.</li>' +
+          '</ul>' +
+          '<div class="callout info"><div><b>The math does not change.</b> Whatever style you pick, size from your stop and risk a small fixed fraction per trade. Style sets the pace; <a href="#/education/risk">risk management</a> keeps you in the game long enough for an edge to show.</div></div>'
+      }
+    ]
+  };
+
+  window.EDUCATION_DATA = (window.EDUCATION_DATA || []).concat([TOPIC, MARKETS, FUNDED, STYLES]);
 })();
