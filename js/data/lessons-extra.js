@@ -92,5 +92,201 @@
       }
     ]
   };
-  window.EDUCATION_DATA = (window.EDUCATION_DATA || []).concat([TOPIC]);
+  var MARKETS = {
+    id: 'markets-instruments',
+    title: 'Markets & Instruments',
+    icon: 'layers',
+    blurb: 'Stocks, ETFs, options, futures, forex and crypto — what each one actually is, how it trades, and where the risk hides.',
+    minutes: 15,
+    sections: [
+      {
+        title: 'The map: same charts, very different vehicles',
+        html:
+          '<p>“Trading” is not one thing. The candlesticks and levels in this app look the same across every market, but <em>what</em> you are buying — and how badly it can hurt you — changes completely from one instrument to the next. The biggest differences are three:</p>' +
+          '<ul>' +
+          '<li><strong>Leverage</strong> — how much market exposure each dollar controls. More leverage magnifies gains <em>and</em> losses; it is the single biggest reason beginners blow up.</li>' +
+          '<li><strong>Hours</strong> — when it trades, and therefore when it can gap against you while you sleep.</li>' +
+          '<li><strong>Complexity &amp; regulation</strong> — how many moving parts the instrument has, and how much oversight protects you if something goes wrong.</li>' +
+          '</ul>' +
+          '<div class="callout info"><div><b>The through-line.</b> Learn to read price and manage risk on a simple, transparent instrument first. Leverage and complexity do not create an edge — they just amplify whatever edge (or mistake) you already have.</div></div>'
+      },
+      {
+        title: 'Stocks (equities)',
+        html:
+          '<p>A share of stock is partial <strong>ownership of a company</strong>, bought and sold on regulated exchanges (NYSE, Nasdaq). The most transparent, beginner-friendly instrument.</p>' +
+          '<ul>' +
+          '<li><strong>Hours:</strong> 9:30–16:00 ET regular session, plus pre-market (from 4:00 AM) and after-hours (to 8:00 PM) with thinner liquidity.</li>' +
+          '<li><strong>Leverage:</strong> none by default. A cash account trades your money 1:1; a margin account can lend up to ~2× overnight and ~4× intraday buying power — leverage you opt into, not built into the share.</li>' +
+          '<li><strong>Watch-outs:</strong> the US <em>Pattern Day Trader</em> rule limits accounts under $25,000 to three day trades per five business days. You can go long easily; shorting requires borrowable shares.</li>' +
+          '</ul>'
+      },
+      {
+        title: 'ETFs (exchange-traded funds)',
+        html:
+          '<p>An ETF is a <strong>basket of assets</strong> (stocks, bonds, commodities) that trades on an exchange exactly like a single stock. Buying SPY gives you exposure to the whole S&amp;P 500 in one ticker.</p>' +
+          '<ul>' +
+          '<li><strong>Why traders use them:</strong> instant diversification, deep liquidity (SPY, QQQ are among the most-traded instruments on earth), and clean exposure to an index, sector or theme.</li>' +
+          '<li><strong>Same rules as stocks</strong> — same hours, same PDT rule, same margin.</li>' +
+          '</ul>' +
+          '<div class="callout warn"><div><b>Leveraged &amp; inverse ETFs are different animals.</b> Products like 3× or −1× ETFs reset daily and <em>decay</em> over time — held for more than a day in a choppy market they can lose value even if the index ends flat. They are short-term tools, not investments.</div></div>'
+      },
+      {
+        title: 'Options',
+        html:
+          '<p>An option is a <strong>contract</strong> giving the buyer the <em>right, not the obligation,</em> to buy (a <strong>call</strong>) or sell (a <strong>put</strong>) 100 shares at a set <strong>strike price</strong> before an <strong>expiration date</strong>, for a price called the <strong>premium</strong>.</p>' +
+          '<ul>' +
+          '<li><strong>Leverage &amp; defined risk (for buyers):</strong> a cheap premium controls 100 shares, so percentage moves are large. A buyer’s loss is capped at the premium paid — you cannot lose more than you spent.</li>' +
+          '<li><strong>Undefined risk (for sellers):</strong> selling options collects premium but can carry large or, when naked, effectively unlimited risk. Not a beginner move.</li>' +
+          '<li><strong>Time decay (theta):</strong> options lose value as expiration approaches, all else equal. You can be right on direction and still lose if the move is too slow.</li>' +
+          '</ul>' +
+          '<div class="callout warn"><div><b>Complexity tax.</b> Options add strike, expiry, implied volatility and decay on top of direction. They are powerful for hedging and defined-risk speculation, but there is a lot to learn before real money — start with buying single calls/puts, never naked selling.</div></div>'
+      },
+      {
+        title: 'Futures',
+        html:
+          '<p>A futures contract is a <strong>standardized agreement</strong> to buy or sell an asset (a stock index, oil, gold, currencies) at a set price on a future date. Index futures like the E-mini S&amp;P (ES) and Nasdaq (NQ) are the workhorses of many day traders — and the instrument most funded/prop challenges use.</p>' +
+          '<ul>' +
+          '<li><strong>High built-in leverage:</strong> you post a small margin to control a large contract, so each tick is meaningful. Great for capital efficiency, brutal when wrong — small accounts can be wiped out in minutes.</li>' +
+          '<li><strong>Nearly 24-hour trading,</strong> roughly Sunday 6:00 PM to Friday 5:00 PM ET with short daily breaks — so overnight risk is real and continuous.</li>' +
+          '<li><strong>Micros:</strong> Micro E-minis (MES, MNQ) are one-tenth the size, letting small accounts practice futures with far less risk per tick.</li>' +
+          '<li><strong>US tax note:</strong> most futures get Section 1256 “60/40” treatment (60% long-term, 40% short-term) regardless of holding period — different from stocks.</li>' +
+          '</ul>'
+      },
+      {
+        title: 'Forex (FX)',
+        html:
+          '<p>Foreign exchange is the trading of one currency against another in <strong>pairs</strong> (EUR/USD, USD/JPY). It is the largest, most liquid market in the world, traded <strong>over-the-counter</strong> through brokers rather than a central exchange.</p>' +
+          '<ul>' +
+          '<li><strong>Hours:</strong> 24 hours a day, five days a week, following the global session handoff (Sydney → Tokyo → London → New York).</li>' +
+          '<li><strong>Leverage:</strong> often very high — US retail is capped around 50:1 on majors, but offshore brokers advertise far more. High leverage plus small pip moves is a fast way to over-size.</li>' +
+          '<li><strong>Costs &amp; units:</strong> priced in <em>pips</em>; traded in lots (standard 100k, mini 10k, micro 1k units). Most retail FX is spread-based, so the broker’s spread is your main cost.</li>' +
+          '</ul>' +
+          '<div class="callout warn"><div><b>Broker quality matters more here.</b> Because FX is OTC and lightly regulated in some jurisdictions, who you trade <em>with</em> is part of the risk. Prefer well-regulated brokers.</div></div>'
+      },
+      {
+        title: 'Crypto',
+        html:
+          '<p>Cryptocurrencies (Bitcoin, Ether and thousands of others) are digital assets that trade <strong>24/7/365</strong> on crypto exchanges. The youngest, most volatile, and least uniformly regulated market here.</p>' +
+          '<ul>' +
+          '<li><strong>Always on:</strong> no close, no circuit breakers on most venues — a weekend headline can move your position while traditional markets are shut.</li>' +
+          '<li><strong>Spot vs derivatives:</strong> you can buy the coin outright (spot) or trade high-leverage perpetual futures — the latter is where most blow-ups happen.</li>' +
+          '<li><strong>Custody &amp; venue risk:</strong> “not your keys, not your coins.” Exchanges have failed and frozen withdrawals; the collapse of major venues has wiped out customer funds. Treat exchange and counterparty risk as real, not theoretical.</li>' +
+          '</ul>' +
+          '<div class="callout danger"><div><b>Volatility cuts both ways, hard.</b> Double-digit percent days are normal. The same move that makes crypto exciting is what liquidates over-leveraged accounts overnight.</div></div>'
+      },
+      {
+        title: 'Which to start with',
+        html:
+          '<div class="table-wrap"><table class="table"><thead><tr><th>Instrument</th><th>Typical hours</th><th>Built-in leverage</th><th>Complexity</th></tr></thead><tbody>' +
+          '<tr><td><strong>Stocks</strong></td><td>Regular + extended (ET)</td><td>None (margin optional)</td><td>Low</td></tr>' +
+          '<tr><td><strong>ETFs</strong></td><td>Same as stocks</td><td>None (leveraged ETFs excepted)</td><td>Low</td></tr>' +
+          '<tr><td><strong>Options</strong></td><td>Same as stocks</td><td>High (per contract)</td><td>High</td></tr>' +
+          '<tr><td><strong>Futures</strong></td><td>~23h, Sun–Fri</td><td>High (built in)</td><td>Medium–High</td></tr>' +
+          '<tr><td><strong>Forex</strong></td><td>24/5</td><td>High</td><td>Medium</td></tr>' +
+          '<tr><td><strong>Crypto</strong></td><td>24/7</td><td>None spot / High derivatives</td><td>Medium</td></tr>' +
+          '</tbody></table></div>' +
+          '<p>There is no single “best” market, and this is not advice — but a common, sensible learning path is to build the fundamentals on the most <strong>transparent, regulated, lowest-leverage</strong> instruments first (cash-account stocks or major ETFs), where a mistake costs you a defined amount and no leverage multiplies it. Once reading price and managing risk are second nature, adding leverage (futures, forex) or complexity (options) is a deliberate step, not a starting point.</p>' +
+          '<div class="callout info"><div><b>One principle carries across all of them.</b> Position size from your stop and risk a small, fixed fraction per trade. The instrument changes the mechanics; it never changes the math that keeps you in the game. See <a href="#/education/risk">Risk Management</a>.</div></div>'
+      }
+    ]
+  };
+
+  var FUNDED = {
+    id: 'funded-accounts',
+    title: 'Funded Accounts & Prop Firms',
+    icon: 'dollar',
+    blurb: 'What funded accounts and prop firms really are, the challenge rules that decide everything, and how to choose one without getting burned.',
+    minutes: 13,
+    sections: [
+      {
+        title: 'What a funded account is',
+        html:
+          '<p>A <strong>funded account</strong> lets you trade a firm’s capital instead of your own and keep a share of the profits. The appeal is obvious: access to larger size than you could fund yourself, without risking your personal savings on every trade.</p>' +
+          '<p>There are two very different things wearing this name:</p>' +
+          '<ul>' +
+          '<li><strong>Traditional proprietary firms</strong> — you join a firm (often in-office, sometimes licensed), trade its real capital, and split profits. Selective and relationship-based.</li>' +
+          '<li><strong>Online “funded challenge” firms</strong> — the modern, retail version: you pay a fee, pass an evaluation, and receive a funded account (frequently still a simulated account whose profits the firm pays out). This is what most people mean today, and what the rest of this lesson is about.</li>' +
+          '</ul>' +
+          '<div class="callout info"><div><b>The honest framing.</b> A challenge account is not free money — it is a paid test of your risk discipline. You are buying an opportunity to prove you can trade within strict rules, in exchange for a share of what you make.</div></div>'
+      },
+      {
+        title: 'The evaluation (challenge) model',
+        html:
+          '<p>Almost every online funded offer is an <strong>evaluation</strong>: pay a one-time fee for an account of a chosen size, then hit a profit target <em>without breaking any risk rule</em>. Pass, and you move to a funded account with a profit split.</p>' +
+          '<ul>' +
+          '<li><strong>One-step</strong> — a single evaluation phase. Faster, usually stricter rules.</li>' +
+          '<li><strong>Two-step</strong> — a “challenge” then a “verification” phase with a smaller target. Slower, often cheaper, a bit more forgiving.</li>' +
+          '</ul>' +
+          '<p>The catch that decides your outcome is almost never the profit target — it is the <strong>risk rules</strong> you must respect the entire time.</p>'
+      },
+      {
+        title: 'The rules that decide everything',
+        html:
+          '<p>Breaching any one of these usually ends the account instantly — target progress and all. Understanding them <em>cold</em> is the whole game:</p>' +
+          '<div class="table-wrap"><table class="table"><thead><tr><th>Rule</th><th>What it means</th></tr></thead><tbody>' +
+          '<tr><td><strong>Profit target</strong></td><td>The gain you must reach to pass (often ~8–10% of account size).</td></tr>' +
+          '<tr><td><strong>Max total drawdown</strong></td><td>The most your balance may fall from its start (or peak). <em>Static</em> = fixed floor; <em>trailing</em> = the floor rises as you profit, which is far easier to trip.</td></tr>' +
+          '<tr><td><strong>Daily loss limit</strong></td><td>The most you may lose in a single day. Hit it and you are out, even mid-trade.</td></tr>' +
+          '<tr><td><strong>Minimum trading days</strong></td><td>You must trade at least N days — you cannot pass in one lucky session.</td></tr>' +
+          '<tr><td><strong>Consistency rule</strong></td><td>No single day may account for more than a set share of total profit — discourages one gamble carrying the pass.</td></tr>' +
+          '<tr><td><strong>Prohibited strategies</strong></td><td>Many firms ban trading through high-impact news, automated/HFT bots, copy trading, or extreme hyper-scalping. Read this list.</td></tr>' +
+          '</tbody></table></div>' +
+          '<div class="callout warn"><div><b>Trailing drawdown is the classic killer.</b> When the loss floor follows your peak balance up, giving back too much of an open profit can fail you even while you are still net positive. Know exactly how your firm calculates it — end-of-day vs intraday, on balance vs equity.</div></div>'
+      },
+      {
+        title: 'Fees, splits & payouts',
+        html:
+          '<p>Understand the economics before you pay:</p>' +
+          '<ul>' +
+          '<li><strong>Challenge fee:</strong> a one-time cost scaled to account size (roughly tens to several hundred dollars). Fail, and you buy another attempt — resets are a major revenue source for these firms.</li>' +
+          '<li><strong>Profit split:</strong> commonly 80–90% to the trader, sometimes rising as you scale.</li>' +
+          '<li><strong>Payout terms:</strong> minimum profit before a withdrawal, minimum days, and a payout schedule. The real question is not the advertised split — it is whether traders actually <em>get paid, on time,</em> consistently.</li>' +
+          '</ul>' +
+          '<div class="callout info"><div><b>Follow the money.</b> For many challenge firms, selling and re-selling evaluations is the core business. That is not automatically bad, but it means their incentive is for challenges to be <em>hard</em> — price the fee as tuition you may not get back.</div></div>'
+      },
+      {
+        title: 'Futures firms vs forex/CFD firms',
+        html:
+          '<p>The two big categories work differently:</p>' +
+          '<ul>' +
+          '<li><strong>Futures evaluation firms</strong> — you trade futures (ES, NQ and their micros) on an evaluation, typically on simulated data, with the drawdown/daily-loss rules above. Popular with US day traders because futures suit the style.</li>' +
+          '<li><strong>Forex / CFD firms</strong> — you trade currencies, indices and CFDs, usually on MetaTrader-style platforms. This corner is more lightly regulated and has seen more turnover among firms.</li>' +
+          '</ul>' +
+          '<p>Neither is inherently better; they demand different skills and carry different platform and regulatory considerations. Match the firm to the instrument you actually want to trade.</p>'
+      },
+      {
+        title: 'How to choose one — and the red flags',
+        html:
+          '<p>Judge a firm on evidence, not marketing. A reasonable checklist:</p>' +
+          '<ul>' +
+          '<li><strong>Track record &amp; longevity</strong> — years in operation, not months.</li>' +
+          '<li><strong>Verifiable payouts</strong> — documented, independent proof that traders are actually paid, on schedule.</li>' +
+          '<li><strong>Clear, stable written rules</strong> — especially the exact drawdown mechanics. Rules that change often, or read ambiguously, are a liability.</li>' +
+          '<li><strong>Realistic targets</strong> — a pass that requires reckless risk is designed to be failed.</li>' +
+          '<li><strong>Responsive support and independent reviews</strong> — from real users, not affiliates.</li>' +
+          '</ul>' +
+          '<div class="callout danger"><div><b>Red flags:</b> guaranteed or “risk-free” language, opaque or frequently-changing rules, a wall of payout complaints, aggressive up-selling of resets, and targets so tight only gambling passes them. This is a young, lightly-regulated industry — firms have changed terms overnight, failed, and in some cases been shut down by regulators. Treat every fee as money you can lose.</div></div>'
+      },
+      {
+        title: 'Which to start with, and how',
+        html:
+          '<p>This app will not point you at a single “best” firm — the list changes too fast to hard-code, and no one can honestly vouch for another company’s future payouts. What holds up is <em>how</em> you start:</p>' +
+          '<ol>' +
+          '<li><strong>Practice the rules first, for free.</strong> Most firms offer a free trial or you can replicate the rules on a demo. Prove you can hit a target <em>without</em> tripping the daily-loss or drawdown limit before you pay a cent.</li>' +
+          '<li><strong>Start with the smallest account.</strong> The cheapest challenge teaches the same discipline as the largest, for a fraction of the fee. Scale up only after you can pass repeatably.</li>' +
+          '<li><strong>Pick for durability.</strong> A multi-year track record with documented payouts beats a flashy new firm with a bigger split every time.</li>' +
+          '<li><strong>Read every rule before paying,</strong> and know precisely how drawdown is measured on your account.</li>' +
+          '</ol>' +
+          '<div class="callout info"><div><b>The evaluation is a risk-management exam.</b> Most people fail not by failing to make money, but by breaking the daily-loss or drawdown rule chasing it. The <a href="#/education/risk">Risk Management</a> and <a href="#/education/psychology">Psychology</a> lessons here are the actual curriculum.</div></div>'
+      },
+      {
+        title: 'Is it even right for you?',
+        html:
+          '<p>A funded account changes <em>whose</em> money is at risk; it does not create an edge you do not have. If you cannot trade a demo profitably within a fixed set of risk rules, a paid challenge simply converts fees into losses — often repeatedly.</p>' +
+          '<p>The honest sequence is: build a strategy with positive expectancy, prove it on a journal over many trades (see the <a href="#/journal">Trade Journal</a> and <a href="#/insights">Insights</a>), and only then let a challenge test whether you can do it inside someone else’s guardrails. The firm is a funding mechanism, not a shortcut past the work.</p>'
+      }
+    ]
+  };
+
+  window.EDUCATION_DATA = (window.EDUCATION_DATA || []).concat([TOPIC, MARKETS, FUNDED]);
 })();

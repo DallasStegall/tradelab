@@ -265,21 +265,26 @@
 
   /* ------------------------------ Router / nav ------------------------------ */
   var SECTIONS = [
-    { id: 'dashboard',  label: 'Dashboard',            icon: 'home',      render: renderDashboard },
-    { id: 'strategies', label: 'Strategy Library',     icon: 'book',      render: renderStrategies },
-    { id: 'education',  label: 'Education Hub',        icon: 'cap',       render: renderEducation },
-    { id: 'glossary',   label: 'Glossary',             icon: 'search',    render: proxyModule('Glossary', 'js/glossary.js') },
-    { id: 'resources',  label: 'Resources',            icon: 'link',      render: proxyModule('Resources', 'js/resources.js') },
-    { id: 'journal',    label: 'Trade Journal',        icon: 'journal',   render: proxyModule('Journal', 'js/journal.js') },
-    { id: 'insights',   label: 'Insights',             icon: 'brain',     render: proxyModule('Insights', 'js/insights.js') },
-    { id: 'tools',      label: 'Interactive Tools',    icon: 'calc',      render: proxyModule('Tools', 'js/tools.js') },
-    { id: 'checklist',  label: 'Pre-Market Checklist', icon: 'clipboard', render: proxyModule('Checklist', 'js/checklist.js') },
-    { id: 'reflection', label: 'Daily Reflection',     icon: 'edit',      render: proxyModule('Diary', 'js/diary.js') },
-    { id: 'quiz',       label: 'Quiz & Tests',         icon: 'quiz',      render: proxyModule('Quiz', 'js/quiz.js') },
-    { id: 'trainer',    label: 'Chart Trainer',        icon: 'candles',   render: proxyModule('ChartTrainer', 'js/chartsim.js') },
-    { id: 'games',      label: 'Games',                icon: 'game',      render: proxyModule('Games', 'js/games.js') },
-    { id: 'backup',     label: 'Backup & Sync',        icon: 'refresh',   render: proxyModule('Backup', 'js/backup.js') },
-    { id: 'settings',   label: 'Settings',             icon: 'cog',       render: proxyModule('Settings', 'js/settings.js') }
+    { id: 'dashboard',  label: 'Dashboard',            icon: 'home',      group: '',         render: renderDashboard },
+
+    { id: 'strategies', label: 'Strategy Library',     icon: 'book',      group: 'Learn',    render: renderStrategies },
+    { id: 'education',  label: 'Education Hub',        icon: 'cap',       group: 'Learn',    render: renderEducation },
+    { id: 'glossary',   label: 'Glossary',             icon: 'search',    group: 'Learn',    render: proxyModule('Glossary', 'js/glossary.js') },
+    { id: 'resources',  label: 'Resources',            icon: 'link',      group: 'Learn',    render: proxyModule('Resources', 'js/resources.js') },
+
+    { id: 'quiz',       label: 'Quiz & Tests',         icon: 'quiz',      group: 'Practice', render: proxyModule('Quiz', 'js/quiz.js') },
+    { id: 'trainer',    label: 'Chart Trainer',        icon: 'candles',   group: 'Practice', render: proxyModule('ChartTrainer', 'js/chartsim.js') },
+    { id: 'games',      label: 'Games',                icon: 'game',      group: 'Practice', render: proxyModule('Games', 'js/games.js') },
+
+    { id: 'tools',      label: 'Interactive Tools',    icon: 'calc',      group: 'Prepare',  render: proxyModule('Tools', 'js/tools.js') },
+    { id: 'checklist',  label: 'Pre-Market Checklist', icon: 'clipboard', group: 'Prepare',  render: proxyModule('Checklist', 'js/checklist.js') },
+
+    { id: 'journal',    label: 'Trade Journal',        icon: 'journal',   group: 'Track',    render: proxyModule('Journal', 'js/journal.js') },
+    { id: 'insights',   label: 'Insights',             icon: 'brain',     group: 'Track',    render: proxyModule('Insights', 'js/insights.js') },
+    { id: 'reflection', label: 'Daily Reflection',     icon: 'edit',      group: 'Track',    render: proxyModule('Diary', 'js/diary.js') },
+
+    { id: 'backup',     label: 'Backup & Sync',        icon: 'refresh',   group: 'App',      render: proxyModule('Backup', 'js/backup.js') },
+    { id: 'settings',   label: 'Settings',             icon: 'cog',       group: 'App',      render: proxyModule('Settings', 'js/settings.js') }
   ];
 
   function proxyModule(name, file) {
@@ -310,9 +315,16 @@
 
   function buildNav() {
     var nav = document.getElementById('nav');
-    nav.innerHTML = SECTIONS.map(function (s) {
-      return '<a class="nav-item" data-nav="' + s.id + '" href="#/' + s.id + '">' + icon(s.icon) + '<span>' + esc(s.label) + '</span></a>';
-    }).join('');
+    var html = '', lastGroup = null;
+    SECTIONS.forEach(function (s) {
+      var g = s.group || '';
+      if (g !== lastGroup) {
+        if (g) html += '<div class="nav-group">' + esc(g) + '</div>';
+        lastGroup = g;
+      }
+      html += '<a class="nav-item" data-nav="' + s.id + '" href="#/' + s.id + '">' + icon(s.icon) + '<span>' + esc(s.label) + '</span></a>';
+    });
+    nav.innerHTML = html;
   }
 
   function route() {
